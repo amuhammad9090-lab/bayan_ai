@@ -233,7 +233,7 @@ class _LoginPageState extends State<LoginPage>
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 14),
                 GradientButton(
                   label: busy
                       ? 'Memproses…'
@@ -259,6 +259,27 @@ class _LoginPageState extends State<LoginPage>
                 const SizedBox(height: 18),
                 OutlinedButton(
                   onPressed: (configured && !busy) ? _google : null,
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor:
+                        context.isDark ? AppColors.darkSurface2 : Colors.white,
+                    disabledBackgroundColor:
+                        context.isDark ? AppColors.darkSurface2 : Colors.white,
+                    foregroundColor: context.textColor,
+                    disabledForegroundColor: context.muted,
+                    minimumSize: const Size(0, 54),
+                    elevation: context.isDark ? 0 : 1.5,
+                    shadowColor: Colors.black.withValues(alpha: 0.18),
+                    side: BorderSide(
+                      color: context.isDark
+                          ? AppColors.darkBorder
+                          : const Color(0xFFD5DCE8),
+                    ),
+                    textStyle: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

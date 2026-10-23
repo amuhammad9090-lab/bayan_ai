@@ -10,16 +10,15 @@ class ModelOption {
   const ModelOption(this.id, this.label, this.desc);
 }
 
-const kDefaultModel = 'gemini-3.8-flash';
+const kDefaultModel = 'gemini-3.5-flash-lite';
 
 /// Daftar saran (gratis, ada batas). ID dari sumber pihak ketiga; kalau ada yang
 /// tidak ketemu, pakai "Muat daftar model" di sheet pilih model.
 const kModelOptions = <ModelOption>[
-  ModelOption('gemini-3.8-flash', 'Gemini 3.8 Flash', 'Terbaru, seimbang (disarankan)'),
-  ModelOption('gemini-3.6-flash', 'Gemini 3.6 Flash', 'Generasi sebelumnya, stabil'),
-  ModelOption('gemini-3.5-flash-lite', 'Gemini 3.5 Flash-Lite', 'Paling hemat kuota & ringan'),
+  ModelOption('gemini-3.5-flash-lite', 'Gemini 3.5 Flash-Lite', 'Disarankan: stabil & kuota gratis longgar'),
   ModelOption('gemini-3.1-flash-lite', 'Gemini 3.1 Flash-Lite', 'Ringan & cepat'),
-  ModelOption('gemini-2.5-flash', 'Gemini 2.5 Flash', 'Model lama, masih tersedia'),
+  ModelOption('gemini-2.5-flash-lite', 'Gemini 2.5 Flash-Lite', 'Paling hemat kuota'),
+  ModelOption('gemini-2.5-flash', 'Gemini 2.5 Flash', 'Lebih pintar, kuota gratis lebih kecil'),
 ];
 
 /// Key penyimpanan sengaja disamakan dengan kedua app lama
@@ -29,7 +28,9 @@ class SettingsProvider extends ChangeNotifier implements AiConfigSource {
     _apiKey = _store.getString('api_key') ?? '';
     final saved = _store.getString('model_name');
     // gemini-2.0-flash dari app lama sudah usang -> pindah ke default baru.
-    _model = (saved == null || saved == 'gemini-2.0-flash') ? kDefaultModel : saved;
+    // Model usang/berat (2.0, 3.6, 3.8 Flash) yang sering 503 / kuota gratisnya sempit -> default baru.
+    const retired = {'gemini-2.0-flash', 'gemini-3.6-flash', 'gemini-3.8-flash'};
+    _model = (saved == null || retired.contains(saved)) ? kDefaultModel : saved;
     _arabicSize = _store.getDouble('arabic_size') ?? 26;
     _autoSave = _store.getBool('auto_save') ?? true;
 

@@ -132,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     enableSuggestions: false,
                     onChanged: (_) => setState(() => _valid = null),
                     decoration: InputDecoration(
-                      labelText: 'API key Gemini',
+                      hintText: 'Tempel API key Gemini di sini',
                       prefixIcon: const Icon(AppIcons.key, size: 19),
                       suffixIcon: IconButton(
                         icon: Icon(_obscure ? AppIcons.eye : AppIcons.eyeOff, size: 19),

@@ -16,6 +16,14 @@ class GeminiAiRepository implements AiRepository {
   static const _base = 'https://generativelanguage.googleapis.com/v1beta/models';
   static const _timeout = Duration(seconds: 90);
 
+  /// Cadangan otomatis saat model pilihan sibuk/kena batas (ringan & longgar di free tier).
+  static const _fallbacks = <String>[
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',
+  ];
+
   final AiConfigSource _config;
   final http.Client _client;
 
@@ -182,22 +190,47 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       },
     };
 
-    http.Response res;
-    try {
-      res = await _client
-          .post(
-            Uri.parse('$_base/${cfg.model}:generateContent'),
-            headers: {
-              'content-type': 'application/json',
-              'x-goog-api-key': cfg.apiKey.trim(),
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(_timeout);
-    } on TimeoutException {
-      throw const AiException('Koneksi timeout. Coba lagi sebentar.');
-    } on http.ClientException {
-      throw const AiException('Gagal terhubung ke server Gemini.');
+    // Model utama dulu; kalau server sibuk (503/500/504), kuota habis (429)
+    // atau model tidak tersedia (404), coba ulang lalu pindah ke model cadangan.
+    final models = <String>[cfg.model, ..._fallbacks.where((m) => m != cfg.model)];
+    http.Response? res;
+    AiException? netErr;
+    outer:
+    for (final model in models) {
+      for (var attempt = 0; attempt < 2; attempt++) {
+        if (attempt > 0) await Future<void>.delayed(const Duration(milliseconds: 1500));
+        try {
+          final r = await _client
+              .post(
+                Uri.parse('$_base/$model:generateContent'),
+                headers: {
+                  'content-type': 'application/json',
+                  'x-goog-api-key': cfg.apiKey.trim(),
+                },
+                body: jsonEncode(body),
+              )
+              .timeout(_timeout);
+          res = r;
+          netErr = null;
+          final c = r.statusCode;
+          // Sukses, atau error yang nggak akan membaik dengan ganti model (400/401/403).
+          if (c == 200 || (c < 500 && c != 429 && c != 404)) break outer;
+          // Kuota habis / model tak ada: langsung coba model berikutnya.
+          if (c == 429 || c == 404) break;
+          // 5xx (server sibuk): ulang sekali, lalu model berikutnya.
+        } on TimeoutException {
+          res = null;
+          netErr = const AiException('Koneksi timeout. Coba lagi sebentar.');
+          break;
+        } on http.ClientException {
+          res = null;
+          netErr = const AiException('Gagal terhubung ke server Gemini.');
+          break outer;
+        }
+      }
+    }
+    if (res == null) {
+      throw netErr ?? const AiException('Gagal terhubung ke server Gemini.');
     }
 
     final decoded = _tryDecode(utf8.decode(res.bodyBytes));
