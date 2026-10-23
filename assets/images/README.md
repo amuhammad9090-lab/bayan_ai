@@ -1,16 +1,17 @@
-# Gambar ilustrasi (taruh manual di sini)
+# Gambar ilustrasi
 
-Nama file yang dipanggil kode (PNG transparan disarankan). Kalau file belum ada,
-app otomatis pakai ikon sebagai pengganti, jadi nggak crash.
+Sudah terisi ilustrasi bawaan (gaya datar, karakter islami). Mau ganti dengan gambar lu sendiri?
+Timpa file dengan nama yang sama (PNG transparan disarankan). Kalau file dihapus, app otomatis
+pakai ikon pengganti, jadi nggak crash.
 
-| File                  | Dipakai di                                   | Ukuran saran |
-|-----------------------|----------------------------------------------|--------------|
-| onboarding_1.png      | Onboarding slide 1 (pindai mushaf)           | 800x800      |
-| onboarding_2.png      | Onboarding slide 2 (cari ayat & tafsir)      | 800x800      |
-| onboarding_3.png      | Onboarding slide 3 (nahwu)                   | 800x800      |
-| home_ocr.png          | Kartu "Pindai Mushaf" di Beranda             | 600x400      |
-| home_quran.png        | Kartu "Ayat & Tafsir" di Beranda             | 600x400      |
-| home_nahwu.png        | Kartu "Analisis Nahwu" di Beranda            | 600x400      |
-| home_banner.png       | Banner "Atur API key" di Beranda             | 400x400      |
+| File              | Dipakai di                              |
+|-------------------|-----------------------------------------|
+| onboarding_1.png  | Onboarding 1 (pindai mushaf)            |
+| onboarding_2.png  | Onboarding 2 (cari ayat & tafsir)       |
+| onboarding_3.png  | Onboarding 3 (nahwu)                    |
+| home_ocr.png      | Kartu "Pindai Mushaf" di Beranda        |
+| home_quran.png    | Kartu "Ayat & Tafsir" di Beranda        |
+| home_nahwu.png    | Kartu "Analisis Nahwu" di Beranda       |
+| home_banner.png   | Banner "Atur API key" di Beranda        |
 
 Nama file bisa diganti di `lib/core/art.dart`.
