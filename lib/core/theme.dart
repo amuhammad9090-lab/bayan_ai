@@ -26,13 +26,8 @@ class AppColors {
   static const quran = Color(0xFF2FBFCF);
   // Aksen fitur OCR (Pindai): biru royal lembut, serumpun dengan tema biru muda.
   static const ocr = Color(0xFF5E82E8);
-  // Aksen Setelan: abu-biru netral (slate).
-  static const slate = Color(0xFF6B7BA0);
-  static const orangeLight = Color(0xFFFBC568);
   static const purple = Color(0xFF7B7FC6);
-  static const purpleLight = Color(0xFFA3A6DC);
   static const teal = Color(0xFF4FD3CC);
-  static const tealLight = Color(0xFF8FE6E1);
   static const green = Color(0xFF3FAE5A);
   static const peach = Color(0xFFFFCBBD);
 
@@ -83,25 +78,10 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF74DDE8), Color(0xFF2FBFCF)],
   );
-  static const cardOrange = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFFFBC05A), Color(0xFFF5A623)],
-  );
   static const cardPurple = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF9EA1DE), Color(0xFF7B7FC6)],
-  );
-  static const cardSlate = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF93A3C6), Color(0xFF6B7BA0)],
-  );
-  static const cardTeal = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF7FE4DE), Color(0xFF4FD3CC)],
   );
   // Setelan: hijau segar (beda dari tosca Qur'an).
   static const settings = Color(0xFF34C17C);

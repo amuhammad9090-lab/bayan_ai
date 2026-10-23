@@ -47,6 +47,11 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
           .whereType<Map>()
           .map((e) => HistoryItem.fromJson(Map<String, dynamic>.from(e)))
           .toList();
+      // Bersihin duplikat lama (entri terbaru dipertahankan).
+      final seen = <String>{};
+      _items = _items
+          .where((e) => seen.add('${e.type.name}|${e.input.isNotEmpty ? e.input : e.output}'))
+          .toList();
     } catch (_) {
       _items = [];
     }
@@ -66,6 +71,12 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
   @override
   Future<void> record(HistoryType type, String input, String output) async {
     if (!_enabled() || output.trim().isEmpty) return;
+    // Pencarian/analisis yang sama (termasuk hasil cache & tarik-untuk-refresh)
+    // nggak dicatat dobel: entri lama dibuang, yang baru naik ke paling atas.
+    final inp = input.trim();
+    final out = output.trim();
+    _items.removeWhere((e) =>
+        e.type == type && (inp.isNotEmpty ? e.input == inp : e.output == out));
     _items.insert(
       0,
       HistoryItem(

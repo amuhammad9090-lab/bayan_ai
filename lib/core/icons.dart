@@ -61,4 +61,11 @@ class AppIcons {
   static const logIn = LucideIcons.logIn;
   static const logOut = LucideIcons.logOut;
   static const cloud = LucideIcons.cloud;
+  static const pencil = LucideIcons.pencil;
+  static const back = LucideIcons.chevronLeft;
+  static const calendar = LucideIcons.calendarDays;
+  static const clock = LucideIcons.clock;
+  static const shield = LucideIcons.shieldCheck;
+  static const hash = LucideIcons.hash;
+  static const external = LucideIcons.externalLink;
 }

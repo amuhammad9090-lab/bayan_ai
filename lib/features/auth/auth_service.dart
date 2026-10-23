@@ -14,14 +14,60 @@ class AuthService {
   /// userChanges (bukan authStateChanges) supaya perubahan nama setelah daftar ikut ke-update.
   Stream<AppUser?> get userChanges => _auth.userChanges().map(_map);
 
+  /// Login Google lewat provider kadang mengisi `user.displayName` kosong, padahal
+  /// namanya ada di `providerData`. Ambil dari situ kalau yang utama kosong.
+  String _nameOf(User u) {
+    final main = u.displayName?.trim() ?? '';
+    if (main.isNotEmpty) return main;
+    for (final p in u.providerData) {
+      final n = p.displayName?.trim() ?? '';
+      if (n.isNotEmpty) return n;
+    }
+    return '';
+  }
+
+  String _photoOf(User u) {
+    final main = u.photoURL?.trim() ?? '';
+    if (main.isNotEmpty) return main;
+    for (final p in u.providerData) {
+      final n = p.photoURL?.trim() ?? '';
+      if (n.isNotEmpty) return n;
+    }
+    return '';
+  }
+
   AppUser? _map(User? u) => u == null
       ? null
       : AppUser(
           uid: u.uid,
-          displayName: u.displayName ?? '',
+          displayName: _nameOf(u),
           email: u.email ?? '',
-          photoUrl: u.photoURL ?? '',
+          photoUrl: _photoOf(u),
+          providers: [for (final p in u.providerData) p.providerId],
+          createdAt: u.metadata.creationTime,
+          lastSignInAt: u.metadata.lastSignInTime,
         );
+
+  /// User yang sedang login (null kalau belum).
+  AppUser? get current {
+    final u = _auth.currentUser;
+    return u == null ? null : _map(u);
+  }
+
+  /// Muat ulang profil dari server (tarik-untuk-refresh di halaman Profil).
+  Future<void> refreshUser() async => _auth.currentUser?.reload();
+
+  /// Ubah nama tampilan, sekalian disinkron ke dokumen Firestore.
+  Future<void> updateName(String name) async {
+    final u = _auth.currentUser;
+    if (u == null) return;
+    final n = name.trim();
+    await u.updateDisplayName(n);
+    await u.reload();
+    try {
+      await _db.collection('users').doc(u.uid).set({'displayName': n}, SetOptions(merge: true));
+    } catch (_) {}
+  }
 
   /// Semua method login mengembalikan `true` kalau dokumen Firestore berhasil disinkron.
   Future<bool> signInWithEmail({
@@ -59,7 +105,11 @@ class AuthService {
     final cred = kIsWeb
         ? await _auth.signInWithPopup(provider)
         : await _auth.signInWithProvider(provider);
-    return _syncUser(cred.user, 'google');
+    // Pastikan profil terbaru (nama & foto Google) ikut terbaca sebelum disinkron.
+    try {
+      await cred.user?.reload();
+    } catch (_) {}
+    return _syncUser(_auth.currentUser ?? cred.user, 'google');
   }
 
   Future<void> sendPasswordReset(String email) =>
@@ -75,9 +125,9 @@ class AuthService {
       final snap = await ref.get();
       final data = <String, dynamic>{
         'uid': u.uid,
-        'displayName': u.displayName ?? '',
+        'displayName': _nameOf(u),
         'email': u.email ?? '',
-        'photoUrl': u.photoURL ?? '',
+        'photoUrl': _photoOf(u),
         'provider': provider,
         'lastLoginAt': FieldValue.serverTimestamp(),
       };

@@ -5,16 +5,15 @@ import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/common.dart';
 import '../shell/nav_provider.dart';
+import '../profile/profile_page.dart';
 import 'auth_provider.dart';
 import 'user_avatar.dart';
 
-/// Kartu akun di Setelan: info user, status sinkron Firestore, tombol keluar.
-class AccountCard extends StatelessWidget {
-  const AccountCard({super.key});
-
-  Future<void> _logout(BuildContext context) async {
+/// Konfirmasi lalu keluar (dipakai Setelan & halaman Profil).
+Future<void> confirmLogout(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     final nav = context.read<NavProvider>();
+    final navigator = Navigator.of(context);
     final guest = auth.status == AuthStatus.guest;
 
     if (!guest) {
@@ -46,9 +45,15 @@ class AccountCard extends StatelessWidget {
       );
       if (ok != true) return;
     }
+    // Tutup halaman-halaman yang menumpuk (mis. Profil) sebelum sesi berakhir.
+    navigator.popUntil((r) => r.isFirst);
     await auth.signOut();
     nav.go(NavProvider.home);
-  }
+}
+
+/// Kartu akun di Setelan: info user, status sinkron Firestore, tombol keluar.
+class AccountCard extends StatelessWidget {
+  const AccountCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,10 @@ class AccountCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          InkWell(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            onTap: guest ? null : () => openProfile(context),
+            child:
           Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -106,13 +115,15 @@ class AccountCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (!guest) Icon(AppIcons.chevronRight, size: 17, color: context.muted),
               ],
             ),
+          ),
           ),
           const Divider(height: 1),
           InkWell(
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-            onTap: () => _logout(context),
+            onTap: () => confirmLogout(context),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               child: Row(

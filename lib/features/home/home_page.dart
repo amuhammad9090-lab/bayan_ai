@@ -12,6 +12,7 @@ import '../auth/user_avatar.dart';
 import '../history/history_provider.dart';
 import '../history/history_sheet.dart';
 import '../nahwu/nahwu_provider.dart';
+import '../profile/profile_page.dart';
 import '../quran/quran_provider.dart';
 import '../settings/settings_provider.dart';
 import '../shell/nav_provider.dart';

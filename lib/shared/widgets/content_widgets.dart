@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import 'core_widgets.dart';
@@ -58,99 +57,6 @@ class RichResult extends StatelessWidget {
   }
 }
 
-
-/// Header berwarna di atas halaman fitur (OCR/Qur'an/Nahwu), selaras dengan
-/// kartu fitur di Beranda: gradien, sudut besar, ilustrasi di kanan.
-class FeatureHeader extends StatelessWidget {
-  final Gradient gradient;
-  final Color shadow;
-  final String asset;
-  final IconData fallback;
-  final String title;
-  final String subtitle;
-  final Widget? actions;
-  const FeatureHeader({
-    super.key,
-    required this.gradient,
-    required this.shadow,
-    required this.asset,
-    required this.fallback,
-    required this.title,
-    required this.subtitle,
-    this.actions,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(28));
-    return Container(
-      height: 146,
-      decoration: BoxDecoration(
-        gradient: gradient.forMode(context.isDark),
-        borderRadius: radius,
-        boxShadow: context.isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: shadow.withValues(alpha: 0.26),
-                  blurRadius: 20,
-                  offset: const Offset(0, 9),
-                ),
-              ],
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 14, 10, 14),
-      child: Stack(
-        children: [
-          Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    height: 1.2,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 12.5,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: EdgeInsets.only(top: actions == null ? 0 : 26),
-              child: ArtImage(asset: asset, fallbackIcon: fallback, fallbackSize: 52),
-            ),
-          ),
-        ],
-      ),
-          if (actions != null)
-            Positioned(top: -4, right: 0, child: actions!),
-        ],
-      ),
-    );
-  }
-}
 
 // ───────────────────────── Kerangka halaman tab ─────────────────────────
 // Semua tab (OCR, Qur'an, Nahwu, Setelan) dibangun dari potongan yang sama:

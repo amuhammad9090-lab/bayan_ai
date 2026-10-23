@@ -4,12 +4,30 @@ class AppUser {
   final String displayName;
   final String email;
   final String photoUrl;
+
+  /// ID provider login, mis. `google.com` atau `password`.
+  final List<String> providers;
+  final DateTime? createdAt;
+  final DateTime? lastSignInAt;
   const AppUser({
     required this.uid,
     required this.displayName,
     required this.email,
     required this.photoUrl,
+    this.providers = const [],
+    this.createdAt,
+    this.lastSignInAt,
   });
+
+  bool get isGoogle => providers.contains('google.com');
+  bool get hasPassword => providers.contains('password');
+
+  String get providerLabel {
+    if (isGoogle && hasPassword) return 'Google & email';
+    if (isGoogle) return 'Google';
+    if (hasPassword) return 'Email & kata sandi';
+    return 'Akun terdaftar';
+  }
 
   /// Nama yang enak ditampilkan (fallback ke bagian depan email).
   String get shownName {

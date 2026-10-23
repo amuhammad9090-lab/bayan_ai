@@ -101,36 +101,6 @@ class ErrorCard extends StatelessWidget {
   }
 }
 
-class NoticeCard extends StatelessWidget {
-  final IconData icon;
-  final String message;
-  const NoticeCard({super.key, required this.message, this.icon = AppIcons.lightbulb});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.surface2,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 17, color: context.cs.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(fontSize: 12.5, height: 1.5, color: context.muted),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Aksi kecil berbentuk chip (ikon + label).
 class ActionChipButton extends StatelessWidget {
   final IconData icon;

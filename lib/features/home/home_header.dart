@@ -87,6 +87,14 @@ class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
 
 // ───────────────────────── Header ─────────────────────────
 
+/// Bagian hari berdasarkan jam di HP: (kata sapaan, emoji).
+(String, String) _dayPart(int hour) {
+  if (hour >= 4 && hour < 11) return ('pagi', '🌤️');
+  if (hour >= 11 && hour < 15) return ('siang', '☀️');
+  if (hour >= 15 && hour < 18) return ('sore', '🌇');
+  return ('malam', '🌙');
+}
+
 class _Greeting extends StatelessWidget {
   const _Greeting();
 
@@ -95,6 +103,7 @@ class _Greeting extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final guest = auth.status == AuthStatus.guest;
     final name = guest ? 'Tamu' : (auth.user?.shownName ?? '');
+    final (part, emoji) = _dayPart(DateTime.now().hour);
 
     return Row(
       children: [
@@ -103,13 +112,16 @@ class _Greeting extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Halo,',
+                'Assalamualaikum, selamat $part',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13.5,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.95),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Row(
                 children: [
                   Flexible(
@@ -118,7 +130,7 @@ class _Greeting extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 25,
                         fontWeight: FontWeight.w800,
                         height: 1.15,
                         color: Colors.white,
@@ -126,17 +138,20 @@ class _Greeting extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('👋', style: TextStyle(fontSize: 21)),
+                  Text(emoji, style: const TextStyle(fontSize: 23)),
                 ],
               ),
             ],
           ),
         ),
         const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.all(2.5),
-          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-          child: UserAvatar(user: guest ? null : auth.user, size: 40),
+        GestureDetector(
+          onTap: guest ? null : () => openProfile(context),
+          child: Container(
+            padding: const EdgeInsets.all(2.5),
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+            child: UserAvatar(user: guest ? null : auth.user, size: 40),
+          ),
         ),
       ],
     );

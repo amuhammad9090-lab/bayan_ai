@@ -84,6 +84,23 @@ class AuthProvider extends ChangeNotifier {
     _firestoreOk = await s.signInWithGoogle();
   });
 
+  /// Ubah nama tampilan. `true` kalau berhasil.
+  Future<bool> updateName(String name) => _guard((s) async {
+    await s.updateName(name);
+    _user = s.current ?? _user;
+  });
+
+  /// Muat ulang profil (gagal diam-diam: nggak penting banget).
+  Future<void> refreshProfile() async {
+    final s = _service;
+    if (s == null) return;
+    try {
+      await s.refreshUser();
+      _user = s.current ?? _user;
+      notifyListeners();
+    } catch (_) {}
+  }
+
   Future<bool> resetPassword(String email) =>
       _guard((s) => s.sendPasswordReset(email));
 
