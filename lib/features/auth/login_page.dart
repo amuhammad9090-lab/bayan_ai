@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage>
     if (!_validEmail(email)) {
       showSnack(
         context,
-        'Isi email yang valid dulu, lalu ketuk "Lupa password?"',
+        'Isi email yang valid terlebih dahulu, lalu ketuk "Lupa kata sandi?"',
         error: true,
       );
       return;
@@ -93,8 +93,8 @@ class _LoginPageState extends State<LoginPage>
     showSnack(
       context,
       ok
-          ? 'Link reset dikirim ke $email'
-          : (auth.error ?? 'Gagal mengirim link reset'),
+          ? 'Tautan atur ulang kata sandi dikirim ke $email'
+          : (auth.error ?? 'Gagal mengirim tautan atur ulang'),
       error: !ok,
     );
   }
@@ -157,7 +157,7 @@ class _LoginPageState extends State<LoginPage>
                             prefixIcon: Icon(AppIcons.mail, size: 20),
                           ),
                           validator: (v) =>
-                              _validEmail(v ?? '') ? null : 'Email nggak valid',
+                              _validEmail(v ?? '') ? null : 'Format email tidak valid',
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -174,7 +174,7 @@ class _LoginPageState extends State<LoginPage>
                           onFieldSubmitted: (_) =>
                               configured && !busy ? _submit() : null,
                           decoration: InputDecoration(
-                            hintText: 'Password',
+                            hintText: 'Kata sandi',
                             prefixIcon: const Icon(AppIcons.lock, size: 20),
                             suffixIcon: IconButton(
                               onPressed: () =>
@@ -186,7 +186,7 @@ class _LoginPageState extends State<LoginPage>
                             ),
                           ),
                           validator: (v) => (v ?? '').length < 6
-                              ? 'Password minimal 6 karakter'
+                              ? 'Kata sandi minimal 6 karakter'
                               : null,
                         ),
                       ],
@@ -225,7 +225,7 @@ class _LoginPageState extends State<LoginPage>
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: const Text(
-                            'Lupa password?',
+                            'Lupa kata sandi?',
                             style: TextStyle(fontSize: 12.5),
                           ),
                         ),
@@ -293,7 +293,7 @@ class _LoginPageState extends State<LoginPage>
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: auth.continueAsGuest,
-                    child: const Text('Lanjut tanpa akun (mode dev)'),
+                    child: const Text('Lanjut tanpa akun (mode pengembangan)'),
                   ),
                 ],
               ]
@@ -528,9 +528,9 @@ class _ConfigWarning extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Firebase belum dikonfigurasi, jadi login dimatikan dulu. '
-              'Jalankan "flutterfire configure" lalu jalankan ulang app. '
-              'Sementara itu lu bisa lanjut tanpa akun.',
+              'Firebase belum dikonfigurasi, sehingga fitur masuk dinonaktifkan sementara. '
+              'Jalankan "flutterfire configure" lalu jalankan ulang aplikasi. '
+              'Sementara itu, kamu dapat melanjutkan tanpa akun.',
               style: TextStyle(fontSize: 12.5, height: 1.5),
             ),
           ),

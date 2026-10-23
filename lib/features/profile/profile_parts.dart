@@ -15,6 +15,18 @@ String formatDate(DateTime d) {
   return '${l.day} ${_months[l.month - 1]} ${l.year}';
 }
 
+/// ID pengguna pendek 8 digit ("4827 1593"), diturunkan tetap dari UID Firebase
+/// (hash FNV-1a), jadi sama terus tiap login dan enak dibaca/disebut.
+String displayId(String uid) {
+  var h = 0x811C9DC5;
+  for (final c in uid.codeUnits) {
+    h ^= c;
+    h = (h * 0x01000193) & 0xFFFFFFFF;
+  }
+  final s = (10000000 + h % 90000000).toString();
+  return '${s.substring(0, 4)} ${s.substring(4)}';
+}
+
 // ───────────────────────── Statistik ─────────────────────────
 
 /// Kartu angka (OCR / Qur'an / Nahwu). Angkanya naik pelan-pelan saat muncul.

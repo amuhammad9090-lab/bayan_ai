@@ -30,7 +30,7 @@ class NahwuPage extends StatelessWidget {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final t = data?.text?.trim() ?? '';
     if (t.isEmpty) {
-      if (context.mounted) showSnack(context, 'Clipboard kosong', error: true);
+      if (context.mounted) showSnack(context, 'Papan klip kosong', error: true);
       return;
     }
     nahwu.setInput(t);
@@ -48,8 +48,8 @@ class NahwuPage extends StatelessWidget {
           shadow: AppColors.purple,
           asset: Art.homeNahwu,
           fallback: AppIcons.nahwu,
-          title: "Bedah I'rab",
-          subtitle: "Analisis nahwu kata per kata: jenis kata, i'rab, dan tandanya.",
+          title: 'Bedah Nahwu',
+          subtitle: 'Analisis nahwu kata per kata: jenis kata, kedudukan, dan tandanya.',
           onRefresh: () async {
             if (nahwu.input.trim().isNotEmpty) {
               await nahwu.analyze();
@@ -142,7 +142,7 @@ class NahwuPage extends StatelessWidget {
           const SkeletonList(
             count: 4,
             height: 92,
-            thinking: ['Memecah kalimat…', 'Menentukan jenis kata…', "Menyusun i'rab…"],
+            thinking: ['Memecah kalimat…', 'Menentukan jenis kata…', 'Menyusun analisis…'],
           )
         else if (nahwu.error != null)
           ErrorCard(message: nahwu.error!)
@@ -151,7 +151,7 @@ class NahwuPage extends StatelessWidget {
             shadow: false,
             child: EmptyState(
               icon: AppIcons.nahwu,
-              title: "Bedah i'rab kata per kata",
+              title: 'Bedah nahwu kata per kata',
               subtitle: 'Masukkan kalimat Arab (lebih baik berharakat) lalu tekan Proses Nahwu.',
             ),
           )
@@ -205,8 +205,8 @@ class NahwuPage extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           const Footnote(
-            "I'rab dibuat oleh AI mengikuti kerangka 7 bab (Al-Kalam, Al-I'rab, Al-Af'al, Isim Marfu', "
-            "Isim Manshub, Isim Makhfudh, At-Tawabi'). Untuk pengajaran, tetap cek ulang dengan kitab rujukan.",
+            "Analisis dibuat oleh AI mengikuti kerangka 7 bab (Al-Kalam, Al-I'rab, Al-Af'al, Isim Marfu', "
+            "Isim Manshub, Isim Makhfudh, At-Tawabi'). Untuk pengajaran, tetap periksa kembali dengan kitab rujukan.",
           ),
         ],
       ],

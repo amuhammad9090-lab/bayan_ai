@@ -53,8 +53,17 @@ class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ],
       ),
-      child: Stack(
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
         children: [
+          // Huruf hijaiyyah melayang pelan di latar (sama dengan halaman masuk).
+          Positioned.fill(
+            child: Opacity(
+              opacity: (1 - t * 1.4).clamp(0.0, 1.0),
+              child: const FloatingLetters(count: 12),
+            ),
+          ),
           // Sapaan + avatar: naik dan memudar saat di-scroll.
           Positioned(
             left: 16,
@@ -80,6 +89,7 @@ class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -108,40 +118,56 @@ class _Greeting extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Column(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Assalamualaikum, selamat $part',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.95),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Assalamualaikum, selamat $part',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.92),
+                  ),
                 ),
               ),
               const SizedBox(height: 3),
               Row(
                 children: [
                   Flexible(
-                    child: Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        color: Colors.white,
+                    // Nama panjang mengecil dulu (maks ~20%), baru dipotong "…".
+                    child: LayoutBuilder(
+                      builder: (context, c) => FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: c.maxWidth * 1.25),
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              height: 1.2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(emoji, style: const TextStyle(fontSize: 23)),
+                  Text(emoji, style: const TextStyle(fontSize: 19)),
                 ],
               ),
             ],
+          ),
           ),
         ),
         const SizedBox(width: 12),

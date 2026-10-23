@@ -29,7 +29,7 @@ Future<void> confirmLogout(BuildContext context) async {
             'Keluar dari akun?',
             style: TextStyle(fontSize: 17),
           ),
-          content: const Text('Lu perlu masuk lagi untuk memakai app ini.'),
+          content: const Text('Kamu perlu masuk kembali untuk menggunakan aplikasi ini.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -107,7 +107,7 @@ class AccountCard extends StatelessWidget {
                                 icon: AppIcons.cloud,
                               )
                             : const Pill(
-                                label: 'Firestore gagal, cek Rules',
+                                label: 'Sinkronisasi gagal, periksa Rules',
                                 color: AppColors.danger,
                                 icon: AppIcons.warning,
                               ),

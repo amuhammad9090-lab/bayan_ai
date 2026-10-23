@@ -6,6 +6,7 @@ import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
+import '../../shared/widgets/animations.dart';
 import '../../shared/widgets/common.dart';
 import '../auth/auth_provider.dart';
 import '../auth/user_avatar.dart';
@@ -87,7 +88,7 @@ class _HomePageState extends State<HomePage> {
             icon: AppIcons.nahwu,
             color: AppColors.purple,
             title: 'Analisis Nahwu',
-            subtitle: "Tulis kalimat Arab, langsung di-i'rab",
+            subtitle: 'Tulis kalimat Arab, langsung dianalisis',
             selected: _scope == _SearchScope.nahwu,
             onTap: () => Navigator.pop(ctx, _SearchScope.nahwu),
           ),
@@ -230,7 +231,7 @@ class _HomePageState extends State<HomePage> {
               asset: Art.homeNahwu,
               fallback: AppIcons.nahwu,
               title: 'Analisis Nahwu',
-              subtitle: "I'rab kata per kata dengan 7 bab",
+              subtitle: 'Nahwu kata per kata dengan 7 bab',
               chips: [
                 (AppIcons.nahwu, '${history.count(HistoryType.nahwu)} hasil'),
                 (AppIcons.lightbulb, '7 bab'),
@@ -263,7 +264,7 @@ class _HomePageState extends State<HomePage> {
           child: EmptyState(
             icon: AppIcons.sparkles,
             title: 'Mulai dari pindai atau cari',
-            subtitle: 'Aktivitas lu bakal muncul di sini.',
+            subtitle: 'Aktivitas kamu akan tampil di sini.',
           ),
         ))
       else

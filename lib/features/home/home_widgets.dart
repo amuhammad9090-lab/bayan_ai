@@ -24,7 +24,7 @@ class _KeyBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Atur API key Gemini dulu biar bisa mulai !',
+                  'Atur API key Gemini terlebih dahulu untuk mulai menggunakan aplikasi.',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14.5,

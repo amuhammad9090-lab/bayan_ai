@@ -28,7 +28,7 @@ class QuranPage extends StatelessWidget {
     final quran = context.read<QuranProvider>();
     FocusScope.of(context).unfocus();
     if (quran.query.trim().isEmpty) {
-      showSnack(context, 'Tulis kata kunci atau topik dulu', error: true);
+      showSnack(context, 'Masukkan kata kunci atau topik terlebih dahulu', error: true);
       return;
     }
     quran.search();
@@ -186,7 +186,7 @@ class QuranPage extends StatelessWidget {
           const SizedBox(height: 6),
           const Footnote(
             'Hasil dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
-            'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum dipakai mengajar.',
+            'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum digunakan untuk mengajar.',
           ),
         ],
       ],

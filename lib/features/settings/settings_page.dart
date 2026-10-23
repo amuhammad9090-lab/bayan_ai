@@ -151,7 +151,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _valid! ? 'API key valid' : 'API key gagal / koneksi error',
+                          _valid! ? 'API key valid' : 'API key tidak valid atau koneksi bermasalah',
                           style: TextStyle(
                             fontSize: 12.5,
                             color: _valid! ? AppColors.success : AppColors.danger,
@@ -166,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Expanded(
                         child: TonalButton(
                           icon: AppIcons.wifi,
-                          label: _testing ? 'Menguji…' : 'Tes koneksi',
+                          label: _testing ? 'Menguji…' : 'Uji koneksi',
                           onTap: _testing ? null : _test,
                         ),
                       ),

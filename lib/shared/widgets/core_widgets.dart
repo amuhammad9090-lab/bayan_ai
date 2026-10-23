@@ -32,7 +32,7 @@ Future<void> copyText(BuildContext context, String text, {String label = 'Teks'}
     return;
   }
   await Clipboard.setData(ClipboardData(text: text));
-  if (context.mounted) showSnack(context, '$label disalin ke clipboard');
+  if (context.mounted) showSnack(context, '$label disalin ke papan klip');
 }
 
 String timeAgo(DateTime t) {

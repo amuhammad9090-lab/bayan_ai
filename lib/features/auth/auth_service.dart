@@ -147,27 +147,27 @@ String? describeAuthError(Object e) {
   if (e is FirebaseAuthException) {
     switch (e.code) {
       case 'invalid-email':
-        return 'Format email nggak valid.';
+        return 'Format email tidak valid.';
       case 'user-disabled':
         return 'Akun ini dinonaktifkan.';
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':
       case 'invalid-login-credentials':
-        return 'Email atau password salah.';
+        return 'Email atau kata sandi salah.';
       case 'email-already-in-use':
-        return 'Email ini sudah terdaftar. Coba masuk saja.';
+        return 'Email ini sudah terdaftar. Silakan masuk.';
       case 'weak-password':
-        return 'Password terlalu lemah (minimal 6 karakter).';
+        return 'Kata sandi terlalu lemah (minimal 6 karakter).';
       case 'network-request-failed':
-        return 'Koneksi internet bermasalah.';
+        return 'Koneksi internet bermasalah. Periksa jaringan kamu.';
       case 'too-many-requests':
         return 'Terlalu banyak percobaan. Coba lagi sebentar.';
       case 'operation-not-allowed':
-        return 'Metode login ini belum diaktifkan di Firebase Console '
+        return 'Metode masuk ini belum diaktifkan di Firebase Console '
             '(Authentication > Sign-in method).';
       case 'account-exists-with-different-credential':
-        return 'Email ini sudah dipakai dengan metode login lain.';
+        return 'Email ini sudah terdaftar dengan metode masuk lain.';
       case 'web-context-canceled':
       case 'popup-closed-by-user':
       case 'cancelled-popup-request':

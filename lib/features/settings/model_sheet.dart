@@ -126,7 +126,7 @@ class _ModelSheetBodyState extends State<_ModelSheetBody> {
         TextField(
           controller: _custom,
           decoration: InputDecoration(
-            hintText: 'Atau ketik ID model sendiri…',
+            hintText: 'Atau masukkan ID model secara manual…',
             suffixIcon: IconButton(
               icon: const Icon(AppIcons.check, size: 18),
               onPressed: () {

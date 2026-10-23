@@ -233,10 +233,14 @@ class ProfilePage extends StatelessWidget {
                           ),
                         InfoRow(
                           icon: AppIcons.hash,
-                          label: 'ID akun',
-                          value: user.uid.length > 14 ? '${user.uid.substring(0, 14)}…' : user.uid,
+                          label: 'ID pengguna',
+                          value: displayId(user.uid),
                           trailing: AppIcons.copy,
-                          onTap: () => copyText(context, user.uid, label: 'ID akun'),
+                          onTap: () => copyText(
+                            context,
+                            displayId(user.uid).replaceAll(' ', ''),
+                            label: 'ID pengguna',
+                          ),
                         ),
                       ],
                     ),
@@ -250,7 +254,7 @@ class ProfilePage extends StatelessWidget {
                           ActionRow(
                             icon: AppIcons.lock,
                             title: 'Ubah kata sandi',
-                            subtitle: 'Kirim tautan penggantian ke email lu',
+                            subtitle: 'Kirim tautan penggantian ke email kamu',
                             onTap: auth.busy ? null : () => _resetPassword(context, user.email),
                           ),
                         if (user.isGoogle)
@@ -265,8 +269,8 @@ class ProfilePage extends StatelessWidget {
                           icon: AppIcons.cloud,
                           title: 'Sinkron akun',
                           subtitle: auth.firestoreOk == false
-                              ? 'Gagal menyimpan ke Firestore, cek Rules'
-                              : 'Profil tersimpan di akun lu',
+                              ? 'Gagal menyimpan ke Firestore, periksa Rules'
+                              : 'Profil tersimpan di akun kamu',
                           trailing: auth.firestoreOk == false ? AppIcons.warning : AppIcons.success,
                         ),
                       ],
@@ -276,7 +280,7 @@ class ProfilePage extends StatelessWidget {
 
                   // ── Keluar ──
                   if (guest)
-                    const Footnote('Lu lagi di mode tamu. Hubungkan Firebase untuk punya akun dan profil.')
+                    const Footnote('Kamu sedang dalam mode tamu. Hubungkan Firebase untuk memiliki akun dan profil.')
                   else
                     LogoutButton(onTap: () => confirmLogout(context)),
                 ]

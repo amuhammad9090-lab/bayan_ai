@@ -15,7 +15,7 @@ Future<ImageSource?> showImageSourceSheet(BuildContext context) {
         _SourceTile(
           icon: AppIcons.camera,
           title: 'Kamera',
-          subtitle: 'Foto halaman mushaf langsung',
+          subtitle: 'Potret halaman mushaf secara langsung',
           onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
         ),
         const SizedBox(height: 10),

@@ -155,7 +155,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       ids.sort((a, b) => b.compareTo(a));
       return ids;
     } on TimeoutException {
-      throw const AiException('Koneksi timeout. Coba lagi sebentar.');
+      throw const AiException('Waktu koneksi habis. Silakan coba lagi.');
     } on http.ClientException {
       throw const AiException('Tidak ada koneksi internet.');
     }
@@ -171,7 +171,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
   }) async {
     final cfg = _config.aiConfig;
     if (!cfg.hasKey) {
-      throw const AiException('API key belum diatur. Buka tab Setelan dulu.');
+      throw const AiException('API key belum diatur. Buka tab Setelan terlebih dahulu.');
     }
 
     final body = <String, dynamic>{
@@ -220,7 +220,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
           // 5xx (server sibuk): ulang sekali, lalu model berikutnya.
         } on TimeoutException {
           res = null;
-          netErr = const AiException('Koneksi timeout. Coba lagi sebentar.');
+          netErr = const AiException('Waktu koneksi habis. Silakan coba lagi.');
           break;
         } on http.ClientException {
           res = null;
@@ -268,7 +268,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
     switch (code) {
       case 400:
         if (apiMsg.toLowerCase().contains('api key')) {
-          return 'API key tidak valid. Cek lagi di Setelan.';
+          return 'API key tidak valid. Periksa kembali di Setelan.';
         }
         return 'Permintaan tidak valid. $apiMsg'.trim();
       case 401:
@@ -279,7 +279,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       case 429:
         return 'Kuota atau batas permintaan habis. Tunggu sebentar lalu coba lagi.';
       default:
-        if (code >= 500) return 'Server Gemini lagi bermasalah ($code). Coba lagi nanti.';
+        if (code >= 500) return 'Server Gemini sedang bermasalah ($code). Silakan coba lagi nanti.';
         return 'Gagal ($code). $apiMsg'.trim();
     }
   }

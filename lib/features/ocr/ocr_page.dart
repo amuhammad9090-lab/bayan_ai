@@ -59,7 +59,7 @@ class _OcrPageState extends State<OcrPage> {
           shadow: AppColors.ocr,
           asset: Art.homeOcr,
           fallback: AppIcons.ocr,
-          title: 'Scan Mushaf',
+          title: 'Pindai Mushaf',
           subtitle: 'Foto halaman mushaf, AI membaca teks Arabnya lengkap dengan harakat.',
           onRefresh: () async {
             if (ocr.image != null) {
@@ -157,9 +157,9 @@ class _OcrPageState extends State<OcrPage> {
         // ── 2. Hasil + aksi lanjutan dalam satu kartu ──
         SectionLabel(
           'Hasil OCR',
-          hint: 'Bisa diedit kalau ada huruf yang keliru',
+          hint: 'Dapat diedit bila ada huruf yang keliru',
           trailing: has
-              ? Pill(label: 'Bisa diedit', color: context.cs.primary, icon: AppIcons.type)
+              ? Pill(label: 'Dapat diedit', color: context.cs.primary, icon: AppIcons.type)
               : null,
         ),
         if (ocr.error != null) ...[
@@ -237,8 +237,8 @@ class _OcrPageState extends State<OcrPage> {
         ),
         PageGap.section,
         const Footnote(
-          'Tips: pakai foto yang terang, lurus, dan tidak buram. '
-          'Crop satu halaman atau satu ayat biar hasilnya lebih akurat.',
+          'Tips: gunakan foto yang terang, lurus, dan tidak buram. '
+          'Potong (crop) per halaman atau per ayat agar hasilnya lebih akurat.',
           icon: AppIcons.lightbulb,
         ),
       ],

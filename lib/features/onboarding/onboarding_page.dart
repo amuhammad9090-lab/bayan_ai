@@ -45,7 +45,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ),
     _Slide(
       "Bedah Nahwu Kata per Kata",
-      "Lihat jenis kata, i'rab, dan tanda i'rab-nya dengan warna yang mudah dibaca.",
+      'Lihat jenis kata, kedudukan, dan tandanya dengan warna yang mudah dibaca.',
       Art.onboarding3,
       AppIcons.nahwu,
       Color(0xFFD9DAF4),
