@@ -34,4 +34,13 @@ abstract class AiRepository {
 
   /// Cek API key (bisa key yang lagi diketik, belum disimpan).
   Future<bool> testConnection({String? apiKey});
+
+  /// ID model Gemini yang bisa dipakai API key ini (untuk generateContent).
+  Future<List<String>> listModels();
+}
+
+/// Kontrol cache hasil AI (diimplementasi oleh CachedAiRepository).
+abstract class AiCache {
+  int get size;
+  Future<void> clear();
 }

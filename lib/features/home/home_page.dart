@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../shared/widgets/common.dart';
+import '../auth/auth_provider.dart';
+import '../auth/user_avatar.dart';
 import '../history/history_provider.dart';
 import '../history/history_sheet.dart';
 import '../settings/settings_provider.dart';
@@ -19,9 +22,9 @@ class HomePage extends StatelessWidget {
     final hasKey = context.select<SettingsProvider, bool>((s) => s.hasApiKey);
     final history = context.watch<HistoryProvider>();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: [
+    final items = <Widget>[
+        const _Greeting(),
+        const SizedBox(height: 14),
         _Hero(onStart: () => nav.go(NavProvider.ocr)),
         const SizedBox(height: 16),
 
@@ -142,6 +145,57 @@ class HomePage extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10),
               child: HistoryTile(item: h, onTap: () => reuseHistory(context, h)),
             ),
+    ];
+
+    // Tiap blok masuk bergantian (fade + naik), jadi beranda terasa "hidup".
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      children: items
+          .animate(interval: 60.ms)
+          .fadeIn(duration: 420.ms)
+          .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+    );
+  }
+}
+
+class _Greeting extends StatelessWidget {
+  const _Greeting();
+
+  static String _salam() {
+    final h = DateTime.now().hour;
+    if (h < 11) return 'Selamat pagi';
+    if (h < 15) return 'Selamat siang';
+    if (h < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final guest = auth.status == AuthStatus.guest;
+    final name = guest ? 'Tamu' : (auth.user?.shownName ?? '');
+
+    return Row(
+      children: [
+        UserAvatar(user: guest ? null : auth.user, size: 44),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Assalamu'alaikum, ${_salam().toLowerCase()}",
+                style: TextStyle(fontSize: 12, color: context.muted),
+              ),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -170,7 +224,9 @@ class _Hero extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.07),
                 ),
-              ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .moveY(begin: -8, end: 8, duration: 3.seconds, curve: Curves.easeInOut),
             ),
             Positioned(
               right: 30,
@@ -182,7 +238,9 @@ class _Hero extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.06),
                 ),
-              ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .moveX(begin: -10, end: 10, duration: 3.6.seconds, curve: Curves.easeInOut),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +260,9 @@ class _Hero extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
+                )
+                    .animate(onPlay: (c) => c.repeat())
+                    .shimmer(delay: 1400.ms, duration: 2200.ms, color: AppColors.blue200),
                 const SizedBox(height: 8),
                 const Text(
                   'Belajar Al-Qur\'an & Nahwu\nlebih cerdas dengan AI',
@@ -292,7 +352,15 @@ class _Stat extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: context.cs.primary),
           const SizedBox(height: 8),
-          Text('$value', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: value),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, v, _) => Text(
+              '$v',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+          ),
           Text(label, style: TextStyle(fontSize: 11.5, color: context.muted)),
         ],
       ),

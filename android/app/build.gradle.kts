@@ -3,10 +3,10 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Baca konfigurasi signing dari android/key.properties (file ini nggak di-commit).
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -24,7 +24,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.mirailabs.bayan_ai"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

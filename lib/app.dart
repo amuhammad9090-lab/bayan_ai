@@ -1,18 +1,62 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'bootstrap.dart';
+import 'core/ai_repository.dart';
 import 'core/app_info.dart';
+import 'core/handoff.dart';
+import 'core/storage.dart';
 import 'core/theme.dart';
+import 'features/auth/auth_provider.dart';
+import 'features/gate/app_gate.dart';
+import 'features/history/history_provider.dart';
+import 'features/nahwu/nahwu_provider.dart';
+import 'features/ocr/ocr_provider.dart';
+import 'features/quran/quran_provider.dart';
 import 'features/settings/settings_provider.dart';
-import 'features/shell/shell_page.dart';
+import 'features/shell/nav_provider.dart';
 
 class BayanAiApp extends StatelessWidget {
-  const BayanAiApp ({super.key});
+  const BayanAiApp({super.key, required this.deps});
+
+  final AppDeps deps;
 
   @override
   Widget build(BuildContext context) {
-    final mode = context.select<SettingsProvider, ThemeMode>((s) => s.themeMode);
+    final ai = deps.ai;
+    return MultiProvider(
+      providers: [
+        Provider<KeyValueStore>.value(value: deps.store),
+        Provider<HandoffService>.value(value: deps.handoff),
+        Provider<AiRepository>.value(value: ai),
+        Provider<AiCache>.value(value: deps.cached),
+        ChangeNotifierProvider<SettingsProvider>.value(value: deps.settings),
+        ChangeNotifierProvider<HistoryProvider>.value(value: deps.history),
+        ChangeNotifierProvider<AuthProvider>.value(value: deps.auth),
+        ChangeNotifierProvider(create: (_) => NavProvider(deps.handoff)),
+        ChangeNotifierProvider(create: (_) => OcrProvider(ai, deps.history)),
+        ChangeNotifierProvider(
+          create: (_) => QuranProvider(ai, deps.history, deps.handoff),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NahwuProvider(ai, deps.history, deps.handoff),
+        ),
+      ],
+      child: const _AppView(),
+    );
+  }
+}
+
+class _AppView extends StatelessWidget {
+  const _AppView();
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = context.select<SettingsProvider, ThemeMode>(
+      (s) => s.themeMode,
+    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -26,15 +70,28 @@ class BayanAiApp extends StatelessWidget {
           value: SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
-            systemNavigationBarColor:
-                dark ? AppColors.darkSurface : AppColors.lightSurface,
-            systemNavigationBarIconBrightness:
-                dark ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor: dark
+                ? AppColors.darkSurface
+                : AppColors.lightSurface,
+            systemNavigationBarIconBrightness: dark
+                ? Brightness.light
+                : Brightness.dark,
           ),
-          child: child!,
+          child: kIsWeb
+              ? ColoredBox(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: child!,
+                    ),
+                  ),
+                )
+              : child!,
         );
       },
-      home: const ShellPage(),
+      home: const AppGate(),
     );
   }
 }

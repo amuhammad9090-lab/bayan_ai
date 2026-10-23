@@ -7,6 +7,7 @@ import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/logo_mark.dart';
+import '../auth/account_card.dart';
 import '../history/history_provider.dart';
 import 'about_sheet.dart';
 import 'model_sheet.dart';
@@ -64,6 +65,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: ctx.cs.surface,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: const Text('Hapus semua riwayat?', style: TextStyle(fontSize: 17)),
         content: const Text('Semua hasil OCR, ayat, dan nahwu yang tersimpan akan dihapus.'),
@@ -95,6 +98,9 @@ class _SettingsPageState extends State<SettingsPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
+        const SectionHeader(title: 'Akun', subtitle: 'Profil dan sesi login'),
+        const AccountCard(),
+        const SizedBox(height: 22),
         const SectionHeader(title: 'Koneksi AI', subtitle: 'Gemini API key & model'),
         AppCard(
           child: Column(
@@ -203,7 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   selected: {s.themeMode},
                   onSelectionChanged: (v) => s.setThemeMode(v.first),
                   style: SegmentedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
+                    textStyle: const TextStyle(fontSize: 12, fontFamily: 'PlusJakartaSans'),
                   ),
                 ),
               ),
@@ -268,6 +274,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
               const SizedBox(height: 8),
+              const Divider(),
+              _Tile(
+                icon: AppIcons.database,
+                title: 'Bersihkan cache AI',
+                value: '${context.read<AiCache>().size} tersimpan',
+                onTap: () async {
+                  final cache = context.read<AiCache>();
+                  await cache.clear();
+                  if (!context.mounted) return;
+                  setState(() {});
+                  showSnack(context, 'Cache AI dibersihkan');
+                },
+              ),
               const Divider(),
               _Tile(
                 icon: AppIcons.trash,

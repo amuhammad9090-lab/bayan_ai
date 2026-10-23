@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/ai_repository.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/common.dart';
@@ -24,6 +25,25 @@ class _ModelSheetBody extends StatefulWidget {
 
 class _ModelSheetBodyState extends State<_ModelSheetBody> {
   final _custom = TextEditingController();
+  List<String>? _remote;
+  bool _loadingRemote = false;
+  String? _remoteError;
+
+  Future<void> _loadRemote() async {
+    final ai = context.read<AiRepository>();
+    setState(() {
+      _loadingRemote = true;
+      _remoteError = null;
+    });
+    try {
+      final ids = await ai.listModels();
+      if (mounted) setState(() => _remote = ids);
+    } on AiException catch (e) {
+      if (mounted) setState(() => _remoteError = e.message);
+    } finally {
+      if (mounted) setState(() => _loadingRemote = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -64,6 +84,45 @@ class _ModelSheetBodyState extends State<_ModelSheetBody> {
             ),
           ),
         const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _loadingRemote ? null : _loadRemote,
+            icon: _loadingRemote
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(AppIcons.replace, size: 17),
+            label: const Text('Muat daftar model dari API key'),
+          ),
+        ),
+        if (_remoteError != null) ...[
+          const SizedBox(height: 10),
+          ErrorCard(message: _remoteError!),
+        ],
+        if (_remote != null) ...[
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final id in _remote!)
+                ActionChip(
+                  label: Text(id, style: const TextStyle(fontSize: 12)),
+                  avatar: settings.model == id
+                      ? Icon(AppIcons.check, size: 14, color: context.cs.primary)
+                      : null,
+                  onPressed: () {
+                    settings.setModel(id);
+                    Navigator.of(context).pop();
+                  },
+                ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
         TextField(
           controller: _custom,
           decoration: InputDecoration(

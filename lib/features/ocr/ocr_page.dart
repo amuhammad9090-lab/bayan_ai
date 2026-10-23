@@ -1,12 +1,13 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/handoff.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
+import '../../shared/widgets/animations.dart';
 import '../../shared/widgets/bound_text.dart';
 import '../../shared/widgets/common.dart';
 import '../settings/settings_provider.dart';
@@ -24,12 +25,20 @@ class _OcrPageState extends State<OcrPage> {
   final _picker = ImagePicker();
 
   Future<void> _pick([ImageSource? preset]) async {
-    final source = preset ?? await showImageSourceSheet(context);
+    // Di web tidak ada pilihan kamera/galeri: langsung buka pemilih file.
+    final source = kIsWeb
+        ? ImageSource.gallery
+        : (preset ?? await showImageSourceSheet(context));
     if (source == null || !mounted) return;
     final ocr = context.read<OcrProvider>();
     try {
-      final x = await _picker.pickImage(source: source, imageQuality: 90);
-      if (x != null) ocr.setImage(File(x.path));
+      final x = await _picker.pickImage(
+        source: source,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+      if (x != null) ocr.setImage(x, await x.readAsBytes());
     } catch (e) {
       if (mounted) showSnack(context, 'Gagal mengambil gambar: $e', error: true);
     }
@@ -57,7 +66,9 @@ class _OcrPageState extends State<OcrPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const IconChip(icon: AppIcons.imagePlus, size: 60),
+                          const IconChip(icon: AppIcons.imagePlus, size: 60)
+                              .animate(onPlay: (c) => c.repeat(reverse: true))
+                              .moveY(begin: -5, end: 5, duration: 1400.ms, curve: Curves.easeInOut),
                           const SizedBox(height: 14),
                           const Text(
                             'Pilih gambar mushaf',
@@ -65,7 +76,7 @@ class _OcrPageState extends State<OcrPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Ketuk untuk kamera atau galeri',
+                            kIsWeb ? 'Klik untuk memilih file gambar' : 'Ketuk untuk kamera atau galeri',
                             style: TextStyle(fontSize: 12, color: context.muted),
                           ),
                         ],
@@ -74,7 +85,8 @@ class _OcrPageState extends State<OcrPage> {
                   : Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.file(ocr.image!, fit: BoxFit.cover),
+                        Image.memory(ocr.bytes!, fit: BoxFit.cover),
+                        if (ocr.loading) const Positioned.fill(child: ScanOverlay()),
                         Positioned(
                           right: 10,
                           top: 10,
@@ -95,19 +107,21 @@ class _OcrPageState extends State<OcrPage> {
 
         Row(
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _pick(ImageSource.camera),
-                icon: const Icon(AppIcons.camera, size: 18),
-                label: const Text('Kamera'),
+            if (!kIsWeb) ...[
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pick(ImageSource.camera),
+                  icon: const Icon(AppIcons.camera, size: 18),
+                  label: const Text('Kamera'),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _pick(ImageSource.gallery),
                 icon: const Icon(AppIcons.gallery, size: 18),
-                label: const Text('Galeri'),
+                label: const Text(kIsWeb ? 'Pilih gambar' : 'Galeri'),
               ),
             ),
           ],
@@ -136,7 +150,11 @@ class _OcrPageState extends State<OcrPage> {
         ],
 
         if (ocr.loading)
-          const SkeletonList(count: 1, height: 150)
+          const SkeletonList(
+            count: 1,
+            height: 150,
+            thinking: ['Membaca tulisan Arab…', 'Mengenali harakat…', 'Merapikan hasil…'],
+          )
         else
           BoundText(
             source: ocr,

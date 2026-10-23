@@ -27,12 +27,13 @@ class AppColors {
   static const lightMuted = Color(0xFF64748B);
 
   // Dark
-  static const darkBg = Color(0xFF0A1226);
-  static const darkSurface = Color(0xFF111B35);
-  static const darkSurface2 = Color(0xFF172345);
-  static const darkBorder = Color(0xFF243362);
-  static const darkText = Color(0xFFE8EEFF);
-  static const darkMuted = Color(0xFF94A3C4);
+  // Dark mode "kalem": biru-abu lembut, bukan navy pekat.
+  static const darkBg = Color(0xFF1A2438);
+  static const darkSurface = Color(0xFF232F49);
+  static const darkSurface2 = Color(0xFF2C3A58);
+  static const darkBorder = Color(0xFF3B4B6F);
+  static const darkText = Color(0xFFE9EEFA);
+  static const darkMuted = Color(0xFFA9B6D1);
 
   static const danger = Color(0xFFE5484D);
   static const success = Color(0xFF16A34A);
@@ -63,7 +64,7 @@ class AppTheme {
     final border = dark ? AppColors.darkBorder : AppColors.lightBorder;
     final text = dark ? AppColors.darkText : AppColors.lightText;
     final muted = dark ? AppColors.darkMuted : AppColors.lightMuted;
-    final primary = dark ? AppColors.blue400 : AppColors.blue700;
+    final primary = dark ? AppColors.blue300 : AppColors.blue700;
 
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.blue600,
@@ -78,6 +79,14 @@ class AppTheme {
       outline: border,
       outlineVariant: border,
       error: AppColors.danger,
+      // Semua tone surface di-set eksplisit supaya widget M3 (chip, dialog,
+      // segmented button, dll) nggak ngambil warna default yang beda antar tema.
+      surfaceContainerLowest: bg,
+      surfaceContainerLow: surface,
+      surfaceContainer: surface,
+      surfaceContainerHigh: dark ? AppColors.darkSurface2 : AppColors.blue50,
+      surfaceContainerHighest: dark ? AppColors.darkSurface2 : AppColors.blue100,
+      surfaceTint: Colors.transparent,
       primaryContainer: dark ? AppColors.darkSurface2 : AppColors.blue100,
       onPrimaryContainer: dark ? AppColors.blue200 : AppColors.blue900,
     );
@@ -86,7 +95,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: b,
       colorScheme: scheme,
-      fontFamily: 'Poppins',
+      fontFamily: 'PlusJakartaSans',
       scaffoldBackgroundColor: bg,
       splashFactory: InkRipple.splashFactory,
     );
@@ -101,7 +110,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 17,
           fontWeight: FontWeight.w600,
           color: text,
@@ -119,7 +128,7 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final sel = states.contains(WidgetState.selected);
           return TextStyle(
-            fontFamily: 'Poppins',
+            fontFamily: 'PlusJakartaSans',
             fontSize: 11,
             fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
             color: sel ? primary : muted,
@@ -158,7 +167,7 @@ class AppTheme {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           textStyle: const TextStyle(
-            fontFamily: 'Poppins',
+            fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
@@ -172,7 +181,7 @@ class AppTheme {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           textStyle: const TextStyle(
-            fontFamily: 'Poppins',
+            fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
@@ -182,7 +191,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primary,
           textStyle: const TextStyle(
-            fontFamily: 'Poppins',
+            fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
@@ -192,7 +201,7 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         backgroundColor: dark ? AppColors.darkSurface2 : AppColors.navy,
         contentTextStyle: const TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 13,
           color: Colors.white,
         ),
@@ -205,6 +214,13 @@ class AppTheme {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: dark ? AppColors.darkSurface2 : AppColors.blue50,
+        side: BorderSide(color: border),
+        labelStyle: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 12, color: text),
+        shape: const StadiumBorder(),
+        surfaceTintColor: Colors.transparent,
       ),
       dividerTheme: DividerThemeData(color: border, thickness: 1, space: 1),
       sliderTheme: SliderThemeData(
@@ -233,5 +249,7 @@ extension ThemeX on BuildContext {
   Color get muted => isDark ? AppColors.darkMuted : AppColors.lightMuted;
   Color get border => isDark ? AppColors.darkBorder : AppColors.lightBorder;
   Color get surface2 => isDark ? AppColors.darkSurface2 : AppColors.blue50;
+  /// Di dark mode, warna aksen dicerahin dikit biar kebaca di background kalem.
+  Color tone(Color c) => isDark ? Color.lerp(c, Colors.white, 0.4)! : c;
   Color get textColor => isDark ? AppColors.darkText : AppColors.lightText;
 }

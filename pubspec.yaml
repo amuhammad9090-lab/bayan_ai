@@ -1,5 +1,5 @@
 name: bayan_ai
-description: Asisten AI untuk OCR mushaf, pencarian ayat & tafsir, dan analisis nahwu (Flutter + Google Gemini).
+description: Asisten AI untuk OCR mushaf, pencarian ayat & tafsir, dan analisis nahwu (Flutter + Google Gemini + Firebase).
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -17,24 +17,43 @@ dependencies:
   url_launcher: ^6.3.0
   lucide_icons_flutter: ^3.0.0
 
+  # Animasi
+  flutter_animate: ^4.5.0
+
+  # Firebase (login + Firestore)
+  firebase_core: ^3.8.0
+  firebase_auth: ^5.3.4
+  cloud_firestore: ^5.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icons/icon.png"
+  adaptive_icon_background: "assets/icons/icon_background.png"
+  adaptive_icon_foreground: "assets/icons/icon_foreground.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/icons/
+
   fonts:
-    - family: Poppins
+    - family: PlusJakartaSans
       fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Medium.ttf
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
     - family: ScheherazadeNew
       fonts:
@@ -48,8 +67,3 @@ flutter:
     - family: LPMQ
       fonts:
         - asset: assets/fonts/LPMQ_IsepMisbah.ttf
-
-flutter_launcher_icons:
-  android: true
-  image_path: "assets/icons/icon.png"
-  min_sdk_android: 21

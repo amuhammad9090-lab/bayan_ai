@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "814732092554",
+    "project_id": "bayan-ai-a2831",
+    "storage_bucket": "bayan-ai-a2831.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814732092554:android:fd8f7742d33b4befa03973",
+        "android_client_info": {
+          "package_name": "com.mirailabs.bayan_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "814732092554-2jb80ubqb6sts43srcota951kagh4m66.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mirailabs.bayan_ai",
+            "certificate_hash": "5cdd1456d9fa3964ed585b3a824e7aec9f78f86c"
+          }
+        },
+        {
+          "client_id": "814732092554-oaoq6beej3div978ebnpu5scm29ltfcr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mirailabs.bayan_ai",
+            "certificate_hash": "d310e251848355d8b5cad7ebd5aa5aa10b3786c9"
+          }
+        },
+        {
+          "client_id": "814732092554-fci5fqsdnc6njbl1hgfdjou2jhjnkdvm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhM9gQczfM4uHiSVPYlQg1zAWgYeNBcrg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "814732092554-fci5fqsdnc6njbl1hgfdjou2jhjnkdvm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "814732092554-oav06gmlkmd7o4dlu21hmf8h5mat2ih7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mirailabs.bayanAi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

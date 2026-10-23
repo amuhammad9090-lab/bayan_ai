@@ -104,7 +104,11 @@ class NahwuPage extends StatelessWidget {
         const SizedBox(height: 22),
 
         if (nahwu.loading)
-          const SkeletonList(count: 4, height: 92)
+          const SkeletonList(
+            count: 4,
+            height: 92,
+            thinking: ['Memecah kalimat…', 'Menentukan jenis kata…', "Menyusun i'rab…"],
+          )
         else if (nahwu.error != null)
           ErrorCard(message: nahwu.error!)
         else if (analysis == null)
@@ -180,7 +184,8 @@ class NahwuPage extends StatelessWidget {
           const SizedBox(height: 14),
           const NoticeCard(
             icon: AppIcons.info,
-            message: "I'rab dibuat oleh AI. Untuk pengajaran, tetap cek ulang dengan kitab nahwu rujukan.",
+            message: "I'rab dibuat oleh AI mengikuti kerangka 7 bab (Al-Kalam, Al-I'rab, Al-Af'al, Isim Marfu', "
+                "Isim Manshub, Isim Makhfudh, At-Tawabi'). Untuk pengajaran, tetap cek ulang dengan kitab rujukan.",
           ),
         ],
       ],
@@ -193,6 +198,16 @@ Color _jenisColor(String jenis) {
   if (j.contains('fi')) return AppColors.cyan;
   if (j.contains('huruf')) return AppColors.indigo;
   return AppColors.blue600; // isim & lainnya
+}
+
+Color _babColor(String bab) {
+  final b = bab.toLowerCase();
+  if (b.contains('marfu')) return AppColors.blue600;
+  if (b.contains('manshub')) return AppColors.cyan;
+  if (b.contains('makhfudh')) return AppColors.indigo;
+  if (b.contains('tawabi')) return const Color(0xFF0D9488);
+  if (b.contains('af')) return const Color(0xFF7C3AED);
+  return AppColors.blue500; // Al-Kalam, Al-I'rab
 }
 
 class _WordCard extends StatelessWidget {
@@ -208,7 +223,8 @@ class _WordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _jenisColor(word.jenis);
+    final base = _jenisColor(word.jenis);
+    final color = context.tone(base);
     final delay = (index * 70).clamp(0, 700);
 
     return TweenAnimationBuilder<double>(
@@ -242,7 +258,13 @@ class _WordCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        if (word.jenis.isNotEmpty) Pill(label: word.jenis, color: color),
+                        if (word.jenis.isNotEmpty) Pill(label: word.jenis, color: base),
+                        if (word.bab.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Pill(label: word.bab, color: _babColor(word.bab)),
+                          ),
+                        ],
                       ],
                     ),
                     if (word.irab.isNotEmpty) ...[
@@ -254,6 +276,13 @@ class _WordCard extends StatelessWidget {
                           height: 1.5,
                           fontWeight: FontWeight.w500,
                         ),
+                      ),
+                    ],
+                    if (word.tanda.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tanda: ${word.tanda}',
+                        style: TextStyle(fontSize: 12, height: 1.5, color: context.tone(base)),
                       ),
                     ],
                     if (word.makna.isNotEmpty) ...[

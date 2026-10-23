@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/handoff.dart';
@@ -68,9 +69,6 @@ class QuranPage extends StatelessWidget {
                   quran.setQuery(s);
                   _search(context);
                 },
-                backgroundColor: context.surface2,
-                side: BorderSide(color: context.border),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
               );
             },
           ),
@@ -85,7 +83,11 @@ class QuranPage extends StatelessWidget {
         const SizedBox(height: 22),
 
         if (quran.loading)
-          const SkeletonList(count: 3, height: 140)
+          const SkeletonList(
+            count: 3,
+            height: 140,
+            thinking: ['Mencari ayat yang relevan…', 'Membuka rujukan tafsir…', 'Menyusun ringkasan…'],
+          )
         else if (quran.error != null)
           ErrorCard(message: quran.error!)
         else if (result == null)
@@ -95,7 +97,7 @@ class QuranPage extends StatelessWidget {
               icon: AppIcons.bookMarked,
               title: 'Cari ayat & tafsir',
               subtitle: 'Tulis topik seperti "ayat tentang sabar", atau nama surah, '
-                  'lalu AI akan menampilkan ayat, terjemah, dan tafsir ringkas.',
+                  'lalu AI akan menampilkan ayat, terjemah, dan penjelasan dengan pendekatan Tafsir al-Munir dan al-Mishbah.',
             ),
           )
         else ...[
@@ -116,21 +118,24 @@ class QuranPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
             const SizedBox(height: 14),
           ],
           if (result.isStructured)
-            for (final a in result.ayat)
+            for (var i = 0; i < result.ayat.length; i++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 14),
-                child: _AyatCard(ayat: a, arabicSize: arabicSize),
+                child: _AyatCard(ayat: result.ayat[i], arabicSize: arabicSize)
+                    .animate(delay: (120 + i * 100).ms)
+                    .fadeIn(duration: 420.ms)
+                    .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
               )
           else
             AppCard(child: RichResult(text: result.raw, arabicSize: arabicSize)),
           const NoticeCard(
             icon: AppIcons.info,
-            message: 'Hasil dibuat oleh AI. Selalu cocokkan teks ayat dengan mushaf '
-                'dan tafsir dari kitab rujukan sebelum dipakai mengajar.',
+            message: 'Hasil dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
+                'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum dipakai mengajar.',
           ),
         ],
       ],
@@ -148,7 +153,7 @@ class _AyatCard extends StatefulWidget {
 }
 
 class _AyatCardState extends State<_AyatCard> {
-  bool _showTafsir = false;
+  int? _open;
 
   @override
   Widget build(BuildContext context) {
@@ -201,54 +206,106 @@ class _AyatCardState extends State<_AyatCard> {
               ),
             ),
           ],
-          if (a.tafsir.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => setState(() => _showTafsir = !_showTafsir),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Text(
-                      'Tafsir ringkas',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: context.cs.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    AnimatedRotation(
-                      turns: _showTafsir ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(AppIcons.chevronDown, size: 16, color: context.cs.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            AnimatedCrossFade(
-              duration: const Duration(milliseconds: 220),
-              crossFadeState:
-                  _showTafsir ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-              firstChild: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: context.surface2,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: SelectableText(
-                  a.tafsir,
-                  style: const TextStyle(fontSize: 13, height: 1.6),
-                ),
-              ),
-              secondChild: const SizedBox(width: double.infinity),
-            ),
+          if (a.hasTafsir) ...[
+            const SizedBox(height: 12),
+            Builder(builder: (context) {
+              final sections = <(String, String)>[
+                if (a.munir.isNotEmpty) ('Al-Munir', a.munir),
+                if (a.mishbah.isNotEmpty) ('Al-Mishbah', a.mishbah),
+                if (a.tafsir.isNotEmpty) ('Tafsir ringkas', a.tafsir),
+              ];
+              final open = (_open != null && _open! < sections.length) ? _open : null;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (var i = 0; i < sections.length; i++)
+                        _TafsirChip(
+                          label: sections[i].$1,
+                          selected: open == i,
+                          onTap: () => setState(() => _open = open == i ? null : i),
+                        ),
+                    ],
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    alignment: Alignment.topCenter,
+                    child: open == null
+                        ? const SizedBox(width: double.infinity)
+                        : Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: context.surface2,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SelectableText(
+                                  sections[open].$2,
+                                  style: const TextStyle(fontSize: 13, height: 1.6),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Ringkasan AI dengan pendekatan tafsir ini, bukan kutipan kitab.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    color: context.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            }),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _TafsirChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _TafsirChip({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cs.primary;
+    return Material(
+      color: selected ? c.withValues(alpha: context.isDark ? 0.28 : 0.14) : Colors.transparent,
+      shape: StadiumBorder(side: BorderSide(color: selected ? c : context.border)),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.bookMarked, size: 14, color: selected ? c : context.muted),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? c : context.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

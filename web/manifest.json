@@ -1,12 +1,12 @@
 {
-    "name": "bayan_ai",
-    "short_name": "bayan_ai",
+    "name": "Bayan AI",
+    "short_name": "Bayan AI",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1D4ED8",
     "theme_color": "#1D4ED8",
     "description": "Asisten AI untuk OCR mushaf, ayat & tafsir, dan nahwu.",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

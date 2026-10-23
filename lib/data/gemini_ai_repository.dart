@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
 import '../core/ai_repository.dart';
 import '../models/models.dart';
+import 'references.dart';
 
 /// Implementasi AiRepository pakai Google Gemini (REST).
 class GeminiAiRepository implements AiRepository {
@@ -44,14 +44,13 @@ class GeminiAiRepository implements AiRepository {
   @override
   Future<QuranSearchResult> searchQuran(String query) async {
     final text = await _generate(
-      system: 'Kamu adalah asisten ilmu Al-Qur\'an yang teliti. Jangan mengarang ayat. '
-          'Jika tidak yakin dengan nomor surah/ayat atau teksnya, kosongkan field yang tidak pasti, jangan menebak.',
+      system: kQuranReference,
       parts: [
         {
           'text': '''
 Permintaan pengguna: "$query"
 
-Carikan maksimal 5 ayat Al-Qur'an yang paling relevan (atau ayat yang disebutkan langsung oleh pengguna).
+Carikan maksimal 3 ayat Al-Qur'an yang paling relevan (atau ayat yang disebutkan langsung oleh pengguna).
 Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
 {
   "ringkasan": "1-2 kalimat bahasa Indonesia tentang topik ini",
@@ -61,7 +60,8 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       "nomor": "nomor surah:ayat, mis. 2:255",
       "arab": "teks ayat Arab dengan harakat",
       "terjemah": "terjemah bahasa Indonesia",
-      "tafsir": "tafsir ringkas 2-4 kalimat bahasa Indonesia"
+      "tafsir_munir": "2-4 kalimat dengan pendekatan Tafsir al-Munir: kosakata/balaghah penting, sabab nuzul bila ada, makna ayat, lalu hukum/pelajaran praktis",
+      "tafsir_mishbah": "2-4 kalimat dengan pendekatan Tafsir al-Mishbah: munasabah/tema surah, makna kosakata, pesan dan relevansinya masa kini"
     }
   ]
 }
@@ -76,7 +76,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
   @override
   Future<NahwuAnalysis> analyzeNahwu(String sentence) async {
     final text = await _generate(
-      system: 'Kamu adalah ustadz ahli nahwu dan sharaf yang menjelaskan i\'rab dengan runtut dan tepat.',
+      system: kNahwuReference,
       parts: [
         {
           'text': '''
@@ -91,7 +91,9 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
     {
       "kata": "kata Arab (dengan harakat bila ada)",
       "jenis": "Isim | Fi'il | Huruf",
-      "irab": "kedudukan i'rab lengkap, mis. Mubtada' marfu' wa alamatu rafi'ihi dhammah zhahirah",
+      "bab": "salah satu: Al-Kalam | Al-I'rab | Al-Af'al | Isim Marfu' | Isim Manshub | Isim Makhfudh | At-Tawabi'",
+      "irab": "kedudukan i'rab lengkap, mis. Mubtada' marfu'",
+      "tanda": "tanda i'rab, mis. dhammah zhahirah",
       "makna": "arti singkat bahasa Indonesia"
     }
   ],
@@ -118,6 +120,36 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       return res.statusCode == 200;
     } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  Future<List<String>> listModels() async {
+    final cfg = _config.aiConfig;
+    if (!cfg.hasKey) throw const AiException('API key belum diatur.');
+    try {
+      final res = await _client
+          .get(Uri.parse('$_base?pageSize=100'), headers: {'x-goog-api-key': cfg.apiKey.trim()})
+          .timeout(const Duration(seconds: 20));
+      if (res.statusCode != 200) {
+        throw AiException(_friendlyError(res.statusCode, _tryDecode(utf8.decode(res.bodyBytes))));
+      }
+      final list = (_tryDecode(utf8.decode(res.bodyBytes))?['models'] as List? ?? []);
+      final ids = <String>[];
+      for (final m in list.whereType<Map>()) {
+        final name = m['name']?.toString() ?? '';
+        final methods = (m['supportedGenerationMethods'] as List? ?? []).map((e) => '$e');
+        if (!name.startsWith('models/gemini-') || !methods.contains('generateContent')) continue;
+        final id = name.substring('models/'.length);
+        if (RegExp(r'embedding|tts|image|live|audio|robotics|computer-use').hasMatch(id)) continue;
+        ids.add(id);
+      }
+      ids.sort((a, b) => b.compareTo(a));
+      return ids;
+    } on TimeoutException {
+      throw const AiException('Koneksi timeout. Coba lagi sebentar.');
+    } on http.ClientException {
+      throw const AiException('Tidak ada koneksi internet.');
     }
   }
 
@@ -156,7 +188,7 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
           .post(
             Uri.parse('$_base/${cfg.model}:generateContent'),
             headers: {
-              HttpHeaders.contentTypeHeader: 'application/json',
+              'content-type': 'application/json',
               'x-goog-api-key': cfg.apiKey.trim(),
             },
             body: jsonEncode(body),
@@ -164,8 +196,6 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
           .timeout(_timeout);
     } on TimeoutException {
       throw const AiException('Koneksi timeout. Coba lagi sebentar.');
-    } on SocketException {
-      throw const AiException('Tidak ada koneksi internet.');
     } on http.ClientException {
       throw const AiException('Gagal terhubung ke server Gemini.');
     }

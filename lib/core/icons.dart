@@ -50,4 +50,12 @@ class AppIcons {
   static const lightbulb = LucideIcons.lightbulb;
   static const bookMarked = LucideIcons.bookMarked;
   static const monitor = LucideIcons.monitor;
+
+  // Akun
+  static const mail = LucideIcons.mail;
+  static const lock = LucideIcons.lock;
+  static const user = LucideIcons.user;
+  static const logIn = LucideIcons.logIn;
+  static const logOut = LucideIcons.logOut;
+  static const cloud = LucideIcons.cloud;
 }

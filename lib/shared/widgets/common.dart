@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/icons.dart';
 import '../../core/theme.dart';
+import 'animations.dart';
 
 // ───────────────────────── Helpers ─────────────────────────
 
@@ -124,7 +125,7 @@ class SheetFrame extends StatelessWidget {
 
 // ───────────────────────── Building blocks ─────────────────────────
 
-class AppCard extends StatelessWidget {
+class AppCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Gradient? gradient;
@@ -143,34 +144,50 @@ class AppCard extends StatelessWidget {
   });
 
   @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final w = widget;
     final radius = BorderRadius.circular(20);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: (shadow && !context.isDark)
-            ? [
-                BoxShadow(
-                  color: AppColors.blue700.withValues(alpha: 0.06),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
-                ),
-              ]
-            : null,
-      ),
-      child: Material(
-        color: gradient == null ? (color ?? context.cs.surface) : Colors.transparent,
-        borderRadius: radius,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: radius,
-            border: gradient == null ? Border.all(color: context.border) : null,
-          ),
-          child: InkWell(
-            borderRadius: radius,
-            onTap: onTap,
-            child: Padding(padding: padding, child: child),
+    // Kartu yang bisa diketuk "menekan" sedikit saat disentuh.
+    return AnimatedScale(
+      scale: _pressed ? 0.975 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: (w.shadow && !context.isDark)
+              ? [
+                  BoxShadow(
+                    color: AppColors.blue700.withValues(alpha: 0.06),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: w.gradient == null ? (w.color ?? context.cs.surface) : Colors.transparent,
+          borderRadius: radius,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: w.gradient,
+              borderRadius: radius,
+              border: w.gradient == null ? Border.all(color: context.border) : null,
+            ),
+            child: InkWell(
+              borderRadius: radius,
+              onTap: w.onTap,
+              onHighlightChanged:
+                  w.onTap == null ? null : (v) => setState(() => _pressed = v),
+              child: Padding(padding: w.padding, child: w.child),
+            ),
           ),
         ),
       ),
@@ -331,6 +348,7 @@ class Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fg = context.tone(color);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -341,12 +359,16 @@ class Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12, color: color),
+            Icon(icon, size: 12, color: fg),
             const SizedBox(width: 5),
           ],
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+            ),
           ),
         ],
       ),
@@ -460,7 +482,7 @@ class ActionChipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = danger ? AppColors.danger : context.cs.primary;
+    final c = danger ? context.tone(AppColors.danger) : context.cs.primary;
     return Opacity(
       opacity: onTap == null ? 0.45 : 1,
       child: Material(
@@ -494,7 +516,10 @@ class ActionChipButton extends StatelessWidget {
 class SkeletonList extends StatefulWidget {
   final int count;
   final double height;
-  const SkeletonList({super.key, this.count = 3, this.height = 96});
+
+  /// Pesan bergantian "AI lagi mikir" di atas skeleton (opsional).
+  final List<String>? thinking;
+  const SkeletonList({super.key, this.count = 3, this.height = 96, this.thinking});
 
   @override
   State<SkeletonList> createState() => _SkeletonListState();
@@ -516,24 +541,34 @@ class _SkeletonListState extends State<SkeletonList> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final a = context.isDark ? AppColors.darkSurface : AppColors.blue50;
     final b = context.isDark ? AppColors.darkSurface2 : AppColors.blue100;
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (context, _) {
-        final color = Color.lerp(a, b, _c.value)!;
-        return Column(
-          children: List.generate(
-            widget.count,
-            (i) => Container(
-              height: widget.height,
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
+    final thinking = widget.thinking;
+    return Column(
+      children: [
+        if (thinking != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: AiThinking(messages: thinking),
           ),
-        );
-      },
+        AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) {
+            final color = Color.lerp(a, b, _c.value)!;
+            return Column(
+              children: List.generate(
+                widget.count,
+                (i) => Container(
+                  height: widget.height,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -612,7 +647,7 @@ class ArabicField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: 'PlusJakartaSans',
           fontSize: 13,
           color: context.muted,
         ),

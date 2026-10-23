@@ -17,20 +17,26 @@ String _s(dynamic v) => v?.toString().trim() ?? '';
 class NahwuWord {
   final String kata;
   final String jenis; // isim / fi'il / huruf
+  final String bab; // salah satu dari 7 bab (Al-Kalam, Al-I'rab, ...)
   final String irab;
+  final String tanda; // alamat i'rab, mis. dhammah zhahirah
   final String makna;
 
   const NahwuWord({
     required this.kata,
     required this.jenis,
+    this.bab = '',
     required this.irab,
+    this.tanda = '',
     required this.makna,
   });
 
   factory NahwuWord.fromJson(Map<String, dynamic> j) => NahwuWord(
         kata: _s(j['kata']),
         jenis: _s(j['jenis']),
+        bab: _s(j['bab']),
         irab: _s(j['irab']),
+        tanda: _s(j['tanda']),
         makna: _s(j['makna']),
       );
 }
@@ -80,7 +86,9 @@ class NahwuAnalysis {
     if (jenisKalimat.isNotEmpty) b.writeln('Jenis kalimat: $jenisKalimat\n');
     for (var i = 0; i < words.length; i++) {
       final w = words[i];
-      b.writeln('${i + 1}. ${w.kata} — ${w.jenis} — ${w.irab} — ${w.makna}');
+      final parts = [w.kata, w.jenis, if (w.bab.isNotEmpty) 'Bab ${w.bab}', w.irab,
+        if (w.tanda.isNotEmpty) 'tanda: ${w.tanda}', w.makna];
+      b.writeln('${i + 1}. ${parts.join(' — ')}');
     }
     if (ringkasan.isNotEmpty) b.writeln('\nRingkasan: $ringkasan');
     return b.toString().trim();
@@ -94,21 +102,29 @@ class AyatResult {
   final String nomor; // contoh "2:255"
   final String arab;
   final String terjemah;
-  final String tafsir;
+  final String munir; // pendekatan Tafsir al-Munir
+  final String mishbah; // pendekatan Tafsir al-Mishbah
+  final String tafsir; // fallback kalau model cuma ngasih satu tafsir
 
   const AyatResult({
     required this.surah,
     required this.nomor,
     required this.arab,
     required this.terjemah,
-    required this.tafsir,
+    this.munir = '',
+    this.mishbah = '',
+    this.tafsir = '',
   });
+
+  bool get hasTafsir => munir.isNotEmpty || mishbah.isNotEmpty || tafsir.isNotEmpty;
 
   factory AyatResult.fromJson(Map<String, dynamic> j) => AyatResult(
         surah: _s(j['surah']),
         nomor: _s(j['nomor']),
         arab: _s(j['arab']),
         terjemah: _s(j['terjemah']),
+        munir: _s(j['tafsir_munir']),
+        mishbah: _s(j['tafsir_mishbah']),
         tafsir: _s(j['tafsir']),
       );
 
@@ -117,6 +133,8 @@ class AyatResult {
     b.writeln('QS. $surah ($nomor)');
     if (arab.isNotEmpty) b.writeln(arab);
     if (terjemah.isNotEmpty) b.writeln('\nTerjemah: $terjemah');
+    if (munir.isNotEmpty) b.writeln('\nPendekatan Tafsir al-Munir: $munir');
+    if (mishbah.isNotEmpty) b.writeln('\nPendekatan Tafsir al-Mishbah: $mishbah');
     if (tafsir.isNotEmpty) b.writeln('\nTafsir: $tafsir');
     return b.toString().trim();
   }

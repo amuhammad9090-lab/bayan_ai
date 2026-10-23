@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/ai_repository.dart';
 import '../../core/history_recorder.dart';
@@ -12,21 +11,24 @@ class OcrProvider extends ChangeNotifier {
   final AiRepository _ai;
   final HistoryRecorder _history;
 
-  File? _image;
+  XFile? _image;
+  Uint8List? _bytes;
   String _text = '';
   int _textVersion = 0;
   bool _loading = false;
   String? _error;
 
-  File? get image => _image;
+  XFile? get image => _image;
+  Uint8List? get bytes => _bytes;
   String get text => _text;
   int get textVersion => _textVersion;
   bool get loading => _loading;
   String? get error => _error;
   bool get hasText => _text.trim().isNotEmpty;
 
-  void setImage(File f) {
+  void setImage(XFile f, Uint8List bytes) {
     _image = f;
+    _bytes = bytes;
     _setText('');
     _error = null;
     notifyListeners();
@@ -34,6 +36,7 @@ class OcrProvider extends ChangeNotifier {
 
   void clear() {
     _image = null;
+    _bytes = null;
     _error = null;
     _loading = false;
     _setText('');
@@ -54,13 +57,13 @@ class OcrProvider extends ChangeNotifier {
 
   Future<void> run() async {
     final img = _image;
-    if (img == null || _loading) return;
+    final data = _bytes;
+    if (img == null || data == null || _loading) return;
     _loading = true;
     _error = null;
     notifyListeners();
     try {
-      final bytes = await img.readAsBytes();
-      final result = await _ai.ocr(bytes, _mimeOf(img.path));
+      final result = await _ai.ocr(data, img.mimeType ?? _mimeOf(img.name));
       _setText(result);
       await _history.record(HistoryType.ocr, '', result);
     } on AiException catch (e) {
