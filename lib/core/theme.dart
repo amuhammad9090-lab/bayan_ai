@@ -4,27 +4,38 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const blue50 = Color(0xFFEFF6FF);
-  static const blue100 = Color(0xFFDBEAFE);
-  static const blue200 = Color(0xFFBFDBFE);
-  static const blue300 = Color(0xFF93C5FD);
-  static const blue400 = Color(0xFF60A5FA);
-  static const blue500 = Color(0xFF3B82F6);
-  static const blue600 = Color(0xFF2563EB);
-  static const blue700 = Color(0xFF1D4ED8);
-  static const blue800 = Color(0xFF1E40AF);
-  static const blue900 = Color(0xFF1E3A8A);
-  static const navy = Color(0xFF0B1B3F);
+  // Ramp biru langit (gaya desain baru: terang, lembut, bulat).
+  static const blue50 = Color(0xFFEEF7FE);
+  static const blue100 = Color(0xFFDCEEFD);
+  static const blue200 = Color(0xFFBCE0FB);
+  static const blue300 = Color(0xFF8FCBF8);
+  static const blue400 = Color(0xFF66BAF7);
+  static const blue500 = Color(0xFF4FB6F9);
+  static const blue600 = Color(0xFF38A4F0);
+  static const blue700 = Color(0xFF2490DC);
+  static const blue800 = Color(0xFF1B6FB0);
+  static const blue900 = Color(0xFF154F80);
+  static const navy = Color(0xFF0E2340);
 
   static const cyan = Color(0xFF0891B2);
   static const indigo = Color(0xFF4F46E5);
 
+  // Aksen kartu & ikon (oranye, ungu, tosca, hijau, peach).
+  static const orange = Color(0xFFF5A623);
+  static const orangeLight = Color(0xFFFBC568);
+  static const purple = Color(0xFF7B7FC6);
+  static const purpleLight = Color(0xFFA3A6DC);
+  static const teal = Color(0xFF4FD3CC);
+  static const tealLight = Color(0xFF8FE6E1);
+  static const green = Color(0xFF3FAE5A);
+  static const peach = Color(0xFFFFCBBD);
+
   // Light
-  static const lightBg = Color(0xFFF4F7FE);
+  static const lightBg = Color(0xFFEDF4FB);
   static const lightSurface = Colors.white;
-  static const lightBorder = Color(0xFFE2E9F6);
-  static const lightText = Color(0xFF0F1B3D);
-  static const lightMuted = Color(0xFF64748B);
+  static const lightBorder = Color(0xFFE2EBF5);
+  static const lightText = Color(0xFF13203A);
+  static const lightMuted = Color(0xFF77859B);
 
   // Dark
   // Dark mode "kalem": biru-abu lembut, bukan navy pekat.
@@ -47,7 +58,29 @@ class AppColors {
   static const buttonGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [blue700, blue500],
+    colors: [Color(0xFF5CBBFA), Color(0xFF45AEF6)],
+  );
+
+  // Gradien kartu berwarna (beranda & daftar).
+  static const cardBlue = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF6CC2FA), Color(0xFF3FA9F2)],
+  );
+  static const cardOrange = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFBC05A), Color(0xFFF5A623)],
+  );
+  static const cardPurple = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF9EA1DE), Color(0xFF7B7FC6)],
+  );
+  static const cardTeal = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF7FE4DE), Color(0xFF4FD3CC)],
   );
 }
 
@@ -161,11 +194,11 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.blue600,
+          backgroundColor: AppColors.blue500,
           foregroundColor: Colors.white,
-          minimumSize: const Size(0, 50),
+          minimumSize: const Size(0, 54),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           textStyle: const TextStyle(
             fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w600,
@@ -179,7 +212,7 @@ class AppTheme {
           minimumSize: const Size(0, 48),
           side: BorderSide(color: border),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
           textStyle: const TextStyle(
             fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w600,
@@ -234,7 +267,7 @@ class AppTheme {
           (s) => s.contains(WidgetState.selected) ? Colors.white : muted,
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? AppColors.blue600 : border,
+          (s) => s.contains(WidgetState.selected) ? AppColors.blue500 : border,
         ),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),

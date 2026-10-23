@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_info.dart';
@@ -36,10 +35,13 @@ class ShellPage extends StatelessWidget {
     SettingsPage(),
   ];
 
-  /// Ikon aktif "memantul" tiap kali tab dipilih.
-  static Widget _selected(IconData icon) => Icon(icon)
-      .animate()
-      .scaleXY(begin: 0.6, end: 1, duration: 380.ms, curve: Curves.easeOutBack);
+  static const _navItems = <(IconData, String)>[
+    (AppIcons.home, 'Beranda'),
+    (AppIcons.ocr, 'OCR'),
+    (AppIcons.quran, "Qur'an"),
+    (AppIcons.nahwu, 'Nahwu'),
+    (AppIcons.settings, 'Setelan'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -57,134 +59,244 @@ class ShellPage extends StatelessWidget {
         appBar: i == NavProvider.home
             ? null
             : AppBar(
-          toolbarHeight: 66,
-          titleSpacing: 16,
-          title: Row(
-            children: [
-              const LogoMark(size: 38),
-              const SizedBox(width: 12),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 260),
-                  transitionBuilder: (child, anim) => FadeTransition(
-                    opacity: anim,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.25),
-                        end: Offset.zero,
-                      ).animate(anim),
-                      child: child,
-                    ),
-                  ),
-                  layoutBuilder: (current, previous) => Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [...previous, if (current != null) current],
-                  ),
-                  child: Column(
-                    key: ValueKey(i),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _titles[i].$1,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
+                toolbarHeight: 70,
+                titleSpacing: 20,
+                title: Row(
+                  children: [
+                    const LogoMark(size: 40),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.25),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: child,
+                          ),
+                        ),
+                        layoutBuilder: (current, previous) => Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [...previous, if (current != null) current],
+                        ),
+                        child: Column(
+                          key: ValueKey(i),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _titles[i].$1,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              _titles[i].$2,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.muted,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        _titles[i].$2,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11.5, color: context.muted),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                actions: [
+                  _RoundAction(
+                    tooltip: 'Riwayat',
+                    icon: AppIcons.history,
+                    onTap: () => showHistorySheet(context),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  _RoundAction(
+                    tooltip: 'Ganti tema',
+                    icon: dark ? AppIcons.sun : AppIcons.moon,
+                    onTap: () => context.read<SettingsProvider>().setThemeMode(
+                      dark ? ThemeMode.light : ThemeMode.dark,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Riwayat',
-              onPressed: () => showHistorySheet(context),
-              icon: const Icon(AppIcons.history, size: 21),
-            ),
-            IconButton(
-              tooltip: 'Ganti tema',
-              onPressed: () => context.read<SettingsProvider>().setThemeMode(
-                dark ? ThemeMode.light : ThemeMode.dark,
-              ),
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 320),
-                transitionBuilder: (child, anim) => RotationTransition(
-                  turns: Tween<double>(begin: 0.75, end: 1).animate(anim),
-                  child: FadeTransition(opacity: anim, child: child),
-                ),
-                child: Icon(
-                  dark ? AppIcons.sun : AppIcons.moon,
-                  key: ValueKey(dark),
-                  size: 21,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Divider(color: context.border, height: 1),
-          ),
-        ),
         body: IndexedStack(
           index: i,
           children: [
             for (var k = 0; k < _pages.length; k++)
-              TabEntrance(
-                active: i == k,
-                // Beranda tanpa app bar: jaga konten tetap di bawah status bar.
-                child: k == NavProvider.home
-                    ? SafeArea(bottom: false, child: _pages[k])
-                    : _pages[k],
-              ),
+              TabEntrance(active: i == k, child: _pages[k]),
           ],
         ),
-        bottomNavigationBar: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: context.border)),
+        bottomNavigationBar: _FloatingNav(
+          index: i,
+          items: _navItems,
+          onTap: nav.go,
+        ),
+      ),
+    );
+  }
+}
+
+/// Tombol bulat kecil di app bar (riwayat, tema).
+class _RoundAction extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+  const _RoundAction({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: context.surface2,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                icon,
+                key: ValueKey(icon),
+                size: 19,
+                color: context.cs.primary,
+              ),
+            ),
           ),
-          child: NavigationBar(
-            selectedIndex: i,
-            onDestinationSelected: nav.go,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(AppIcons.home),
-                selectedIcon: _selected(AppIcons.home),
-                label: 'Beranda',
-              ),
-              NavigationDestination(
-                icon: const Icon(AppIcons.ocr),
-                selectedIcon: _selected(AppIcons.ocr),
-                label: 'OCR',
-              ),
-              NavigationDestination(
-                icon: const Icon(AppIcons.quran),
-                selectedIcon: _selected(AppIcons.quran),
-                label: "Qur'an",
-              ),
-              NavigationDestination(
-                icon: const Icon(AppIcons.nahwu),
-                selectedIcon: _selected(AppIcons.nahwu),
-                label: 'Nahwu',
-              ),
-              NavigationDestination(
-                icon: const Icon(AppIcons.settings),
-                selectedIcon: _selected(AppIcons.settings),
-                label: 'Setelan',
-              ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom nav melayang: pil putih membulat, tab aktif berupa pil biru
+/// dengan ikon + label, tab lain cuma ikon.
+class _FloatingNav extends StatelessWidget {
+  final int index;
+  final List<(IconData, String)> items;
+  final ValueChanged<int> onTap;
+  const _FloatingNav({
+    required this.index,
+    required this.items,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.isDark;
+    final idle = dark ? AppColors.darkMuted : AppColors.blue300;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        child: Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: context.cs.surface,
+            borderRadius: BorderRadius.circular(34),
+            border: dark ? Border.all(color: context.border) : null,
+            boxShadow: dark
+                ? null
+                : [
+                    BoxShadow(
+                      color: AppColors.blue600.withValues(alpha: 0.14),
+                      blurRadius: 26,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (var k = 0; k < items.length; k++)
+                _NavItem(
+                  icon: items[k].$1,
+                  label: items[k].$2,
+                  selected: k == index,
+                  idleColor: idle,
+                  onTap: () => onTap(k),
+                ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final Color idleColor;
+  final VoidCallback onTap;
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.idleColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: selected ? 16 : 11,
+            vertical: 11,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.blue500 : Colors.transparent,
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 22, color: selected ? Colors.white : idleColor),
+                if (selected) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
@@ -10,164 +11,240 @@ import '../auth/auth_provider.dart';
 import '../auth/user_avatar.dart';
 import '../history/history_provider.dart';
 import '../history/history_sheet.dart';
+import '../quran/quran_provider.dart';
 import '../settings/settings_provider.dart';
 import '../shell/nav_provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  /// Cari dari beranda: isi kolom di tab Qur'an, jalankan pencarian, pindah tab.
+  void _submit(String value) {
+    final q = value.trim();
+    if (q.isEmpty) return;
+    final quran = context.read<QuranProvider>();
+    final nav = context.read<NavProvider>();
+    quran.setQuery(q);
+    quran.search();
+    nav.go(NavProvider.quran);
+    _search.clear();
+    FocusScope.of(context).unfocus();
+  }
 
   @override
   Widget build(BuildContext context) {
     final nav = context.read<NavProvider>();
     final hasKey = context.select<SettingsProvider, bool>((s) => s.hasApiKey);
     final history = context.watch<HistoryProvider>();
+    final dark = context.isDark;
+    final top = MediaQuery.of(context).padding.top;
+
+    Widget pad(Widget w) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: w,
+        );
 
     final items = <Widget>[
-        const _Greeting(),
-        const SizedBox(height: 14),
-        _Hero(onStart: () => nav.go(NavProvider.ocr)),
-        const SizedBox(height: 16),
-
-        if (!hasKey) ...[
-          AppCard(
-            color: context.surface2,
-            shadow: false,
-            onTap: () => nav.go(NavProvider.settings),
-            child: Row(
-              children: [
-                const IconChip(icon: AppIcons.key, size: 40),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('API key belum diatur',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                      SizedBox(height: 2),
-                      Text('Ketuk untuk mengisi di Setelan.', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
+      pad(_SearchRow(
+        controller: _search,
+        onSubmit: _submit,
+        onFilter: () => nav.go(NavProvider.settings),
+      )),
+      const SizedBox(height: 22),
+      if (!hasKey) ...[
+        pad(_KeyBanner(onTap: () => nav.go(NavProvider.settings))),
+        const SizedBox(height: 22),
+      ],
+      pad(const Text(
+        'Fitur',
+        style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
+      )),
+      const SizedBox(height: 14),
+      pad(Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _TopicPill(
+                  icon: AppIcons.ocr,
+                  label: 'Pindai',
+                  color: AppColors.blue500,
+                  filled: true,
+                  onTap: () => nav.go(NavProvider.ocr),
                 ),
-                Icon(AppIcons.chevronRight, size: 18, color: context.muted),
-              ],
-            ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _TopicPill(
+                  icon: AppIcons.quran,
+                  label: "Qur'an",
+                  color: AppColors.orange,
+                  onTap: () => nav.go(NavProvider.quran),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _TopicPill(
+                  icon: AppIcons.nahwu,
+                  label: 'Nahwu',
+                  color: AppColors.purple,
+                  onTap: () => nav.go(NavProvider.nahwu),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _TopicPill(
+                  icon: AppIcons.history,
+                  label: 'Riwayat',
+                  color: AppColors.green,
+                  onTap: () => showHistorySheet(context),
+                ),
+              ),
+            ],
+          ),
         ],
-
-        const SectionHeader(title: 'Fitur utama', subtitle: 'Pilih alat yang lu butuhin'),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.08,
+      )),
+      const SizedBox(height: 24),
+      SizedBox(
+        height: 330,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          clipBehavior: Clip.none,
           children: [
-            _FeatureTile(
-              icon: AppIcons.ocr,
+            _FeatureCard(
+              gradient: AppColors.cardBlue,
+              shadow: AppColors.blue500,
+              asset: Art.homeOcr,
+              fallback: AppIcons.ocr,
               title: 'Pindai Mushaf',
-              desc: 'Ubah foto jadi teks Arab berharakat',
+              subtitle: 'Foto halaman jadi teks Arab berharakat',
+              chips: [
+                (AppIcons.ocr, '${history.count(HistoryType.ocr)} hasil'),
+                (AppIcons.sparkles, 'Gemini'),
+              ],
               onTap: () => nav.go(NavProvider.ocr),
             ),
-            _FeatureTile(
-              icon: AppIcons.quran,
+            const SizedBox(width: 16),
+            _FeatureCard(
+              gradient: AppColors.cardOrange,
+              shadow: AppColors.orange,
+              asset: Art.homeQuran,
+              fallback: AppIcons.quran,
               title: 'Ayat & Tafsir',
-              desc: 'Cari ayat berdasarkan topik',
+              subtitle: 'Cari ayat berdasarkan topik atau nama surah',
+              chips: [
+                (AppIcons.quran, '${history.count(HistoryType.quran)} hasil'),
+                (AppIcons.bookMarked, '2 tafsir'),
+              ],
               onTap: () => nav.go(NavProvider.quran),
             ),
-            _FeatureTile(
-              icon: AppIcons.nahwu,
+            const SizedBox(width: 16),
+            _FeatureCard(
+              gradient: AppColors.cardPurple,
+              shadow: AppColors.purple,
+              asset: Art.homeNahwu,
+              fallback: AppIcons.nahwu,
               title: 'Analisis Nahwu',
-              desc: "I'rab kata per kata",
+              subtitle: "I'rab kata per kata dengan 7 bab",
+              chips: [
+                (AppIcons.nahwu, '${history.count(HistoryType.nahwu)} hasil'),
+                (AppIcons.lightbulb, '7 bab'),
+              ],
               onTap: () => nav.go(NavProvider.nahwu),
             ),
-            _FeatureTile(
-              icon: AppIcons.history,
-              title: 'Riwayat',
-              desc: '${history.items.length} hasil tersimpan',
-              onTap: () => showHistorySheet(context),
-            ),
           ],
         ),
-        const SizedBox(height: 22),
-
-        Row(
-          children: [
-            Expanded(
-              child: _Stat(
-                label: 'OCR',
-                value: history.count(HistoryType.ocr),
-                icon: AppIcons.ocr,
-              ),
+      ),
+      const SizedBox(height: 26),
+      pad(Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Terakhir digunakan',
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _Stat(
-                label: "Qur'an",
-                value: history.count(HistoryType.quran),
-                icon: AppIcons.quran,
-              ),
+          ),
+          if (history.items.isNotEmpty)
+            TextButton(
+              onPressed: () => showHistorySheet(context),
+              child: const Text('Lihat semua'),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _Stat(
-                label: 'Nahwu',
-                value: history.count(HistoryType.nahwu),
-                icon: AppIcons.nahwu,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 22),
-
-        SectionHeader(
-          title: 'Terakhir digunakan',
-          trailing: history.items.isEmpty
-              ? null
-              : TextButton(
-                  onPressed: () => showHistorySheet(context),
-                  child: const Text('Lihat semua'),
-                ),
-        ),
-        if (history.items.isEmpty)
-          const AppCard(
-            shadow: false,
-            child: EmptyState(
-              icon: AppIcons.sparkles,
-              title: 'Mulai dari pindai atau cari',
-              subtitle: 'Aktivitas lu bakal muncul di sini.',
-            ),
-          )
-        else
-          for (final h in history.recent)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: HistoryTile(item: h, onTap: () => reuseHistory(context, h)),
-            ),
+        ],
+      )),
+      const SizedBox(height: 10),
+      if (history.items.isEmpty)
+        pad(const AppCard(
+          shadow: false,
+          child: EmptyState(
+            icon: AppIcons.sparkles,
+            title: 'Mulai dari pindai atau cari',
+            subtitle: 'Aktivitas lu bakal muncul di sini.',
+          ),
+        ))
+      else
+        for (final h in history.recent)
+          pad(Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: _RecentCard(item: h, onTap: () => reuseHistory(context, h)),
+          )),
     ];
 
-    // Tiap blok masuk bergantian (fade + naik), jadi beranda terasa "hidup".
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: items
-          .animate(interval: 60.ms)
-          .fadeIn(duration: 420.ms)
-          .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+    return Column(
+      children: [
+        // Header putih (sapaan + avatar), seperti desain referensi.
+        Container(
+          width: double.infinity,
+          color: context.cs.surface,
+          padding: EdgeInsets.fromLTRB(20, top + 16, 20, 18),
+          child: const _Greeting(),
+        ),
+        Expanded(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: dark
+                  ? null
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFE3F1FD), AppColors.lightBg],
+                    ),
+            ),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(0, 22, 0, 24),
+              children: items
+                  .animate(interval: 50.ms)
+                  .fadeIn(duration: 380.ms)
+                  .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
+// ───────────────────────── Header ─────────────────────────
+
 class _Greeting extends StatelessWidget {
   const _Greeting();
-
-  static String _salam() {
-    final h = DateTime.now().hour;
-    if (h < 11) return 'Selamat pagi';
-    if (h < 15) return 'Selamat siang';
-    if (h < 18) return 'Selamat sore';
-    return 'Selamat malam';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,23 +254,106 @@ class _Greeting extends StatelessWidget {
 
     return Row(
       children: [
-        UserAvatar(user: guest ? null : auth.user, size: 44),
-        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Assalamu'alaikum, ${_salam().toLowerCase()}",
-                style: TextStyle(fontSize: 12, color: context.muted),
+                'Halo,',
+                style: TextStyle(fontSize: 16, color: context.muted),
               ),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('👋', style: TextStyle(fontSize: 26)),
+                ],
               ),
             ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        UserAvatar(user: guest ? null : auth.user, size: 50),
+      ],
+    );
+  }
+}
+
+class _SearchRow extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onSubmit;
+  final VoidCallback onFilter;
+  const _SearchRow({
+    required this.controller,
+    required this.onSubmit,
+    required this.onFilter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.isDark;
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              color: context.cs.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: dark ? Border.all(color: context.border) : null,
+              boxShadow: dark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: AppColors.blue600.withValues(alpha: 0.07),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+            ),
+            child: TextField(
+              controller: controller,
+              textInputAction: TextInputAction.search,
+              onSubmitted: onSubmit,
+              decoration: InputDecoration(
+                hintText: 'Cari ayat atau topik…',
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.fromLTRB(18, 16, 8, 16),
+                suffixIcon: IconButton(
+                  onPressed: () => onSubmit(controller.text),
+                  icon: Icon(AppIcons.search, size: 20, color: context.textColor),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Material(
+          color: AppColors.blue500,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: onFilter,
+            child: const SizedBox(
+              width: 54,
+              height: 54,
+              child: Icon(AppIcons.tune, size: 22, color: Colors.white),
+            ),
           ),
         ),
       ],
@@ -201,135 +361,293 @@ class _Greeting extends StatelessWidget {
   }
 }
 
-class _Hero extends StatelessWidget {
-  final VoidCallback onStart;
-  const _Hero({required this.onStart});
+// ───────────────────────── Banner API key ─────────────────────────
+
+class _KeyBanner extends StatelessWidget {
+  final VoidCallback onTap;
+  const _KeyBanner({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(26),
-      child: Container(
-        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
-        padding: const EdgeInsets.all(22),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -40,
-              top: -50,
-              child: Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.07),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .moveY(begin: -8, end: 8, duration: 3.seconds, curve: Curves.easeInOut),
-            ),
-            Positioned(
-              right: 30,
-              bottom: -60,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .moveX(begin: -10, end: 10, duration: 3.6.seconds, curve: Curves.easeInOut),
-            ),
-            Column(
+    return Container(
+      height: 150,
+      decoration: BoxDecoration(
+        gradient: AppColors.cardBlue,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 8, 18),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 6,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'ScheherazadeNew',
-                        fontSize: 26,
-                        color: Colors.white,
-                        height: 1.8,
+                const Text(
+                  'Atur API key Gemini dulu biar bisa mulai !',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: onTap,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      child: Text(
+                        'Atur Sekarang',
+                        style: TextStyle(
+                          color: Color(0xFF13203A),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                )
-                    .animate(onPlay: (c) => c.repeat())
-                    .shimmer(delay: 1400.ms, duration: 2200.ms, color: AppColors.blue200),
-                const SizedBox(height: 8),
-                const Text(
-                  'Belajar Al-Qur\'an & Nahwu\nlebih cerdas dengan AI',
-                  style: TextStyle(
-                    fontSize: 19,
-                    height: 1.35,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Pindai mushaf, cari ayat dan tafsir, lalu bedah i\'rab-nya.',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.5,
-                    color: Colors.white.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                FilledButton.icon(
-                  onPressed: onStart,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.blue800,
-                    minimumSize: const Size(0, 44),
-                  ),
-                  icon: const Icon(AppIcons.ocr, size: 18),
-                  label: const Text('Mulai pindai'),
                 ),
               ],
             ),
-          ],
+          ),
+          const Expanded(
+            flex: 4,
+            child: ArtImage(
+              asset: Art.homeBanner,
+              fallbackIcon: AppIcons.key,
+              fallbackSize: 56,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ───────────────────────── Pill kategori ─────────────────────────
+
+class _TopicPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool filled;
+  final VoidCallback onTap;
+  const _TopicPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.filled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.isDark;
+    final bg = filled ? color : context.cs.surface;
+    final fg = filled ? Colors.white : context.textColor;
+
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(32),
+      elevation: 0,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(32),
+        onTap: onTap,
+        child: Container(
+          height: 64,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            border: (!filled && dark) ? Border.all(color: context.border) : null,
+            boxShadow: (!filled && !dark)
+                ? [
+                    BoxShadow(
+                      color: AppColors.blue600.withValues(alpha: 0.07),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: filled ? Colors.white.withValues(alpha: 0.28) : color,
+                ),
+                child: Icon(icon, size: 21, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _FeatureTile extends StatelessWidget {
-  final IconData icon;
+// ───────────────────────── Kartu fitur (carousel) ─────────────────────────
+
+class _FeatureCard extends StatelessWidget {
+  final Gradient gradient;
+  final Color shadow;
+  final String asset;
+  final IconData fallback;
   final String title;
-  final String desc;
+  final String subtitle;
+  final List<(IconData, String)> chips;
   final VoidCallback onTap;
-  const _FeatureTile({
-    required this.icon,
+  const _FeatureCard({
+    required this.gradient,
+    required this.shadow,
+    required this.asset,
+    required this.fallback,
     required this.title,
-    required this.desc,
+    required this.subtitle,
+    required this.chips,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    const radius = BorderRadius.all(Radius.circular(30));
+    return Container(
+      width: 252,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: context.isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: shadow.withValues(alpha: 0.28),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        child: Ink(
+          decoration: BoxDecoration(gradient: gradient, borderRadius: radius),
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: ArtImage(asset: asset, fallbackIcon: fallback),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      for (var k = 0; k < chips.length; k++) ...[
+                        if (k > 0) const SizedBox(width: 12),
+                        _MiniStat(icon: chips[k].$1, text: chips[k].$2),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _MiniStat({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconChip(icon: icon, size: 46),
-          const Spacer(),
-          Text(title, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 2),
-          Text(
-            desc,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11.5, height: 1.4, color: context.muted),
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 13, color: Colors.white),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
@@ -337,32 +655,79 @@ class _FeatureTile extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
-  final String label;
-  final int value;
-  final IconData icon;
-  const _Stat({required this.label, required this.value, required this.icon});
+// ───────────────────────── Kartu riwayat berwarna ─────────────────────────
+
+class _RecentCard extends StatelessWidget {
+  final HistoryItem item;
+  final VoidCallback onTap;
+  const _RecentCard({required this.item, required this.onTap});
+
+  Gradient get _gradient {
+    switch (item.type) {
+      case HistoryType.ocr:
+        return AppColors.cardTeal;
+      case HistoryType.quran:
+        return AppColors.cardOrange;
+      case HistoryType.nahwu:
+        return AppColors.cardPurple;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      shadow: false,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      child: Column(
-        children: [
-          Icon(icon, size: 18, color: context.cs.primary),
-          const SizedBox(height: 8),
-          TweenAnimationBuilder<int>(
-            tween: IntTween(begin: 0, end: value),
-            duration: const Duration(milliseconds: 900),
-            curve: Curves.easeOutCubic,
-            builder: (context, v, _) => Text(
-              '$v',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+    const radius = BorderRadius.all(Radius.circular(26));
+    return Material(
+      color: Colors.transparent,
+      borderRadius: radius,
+      child: Ink(
+        decoration: BoxDecoration(gradient: _gradient, borderRadius: radius),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.28),
+                  ),
+                  child: Icon(historyIcon(item.type), size: 24, color: Colors.white),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        historyTitle(item),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${historyLabel(item.type)} · ${timeAgo(item.createdAt)}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(AppIcons.chevronRight, size: 20, color: Colors.white),
+              ],
             ),
           ),
-          Text(label, style: TextStyle(fontSize: 11.5, color: context.muted)),
-        ],
+        ),
       ),
     );
   }

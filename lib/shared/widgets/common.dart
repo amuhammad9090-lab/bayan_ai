@@ -153,7 +153,7 @@ class _AppCardState extends State<AppCard> {
   @override
   Widget build(BuildContext context) {
     final w = widget;
-    final radius = BorderRadius.circular(20);
+    final radius = BorderRadius.circular(24);
     // Kartu yang bisa diketuk "menekan" sedikit saat disentuh.
     return AnimatedScale(
       scale: _pressed ? 0.975 : 1,
@@ -165,9 +165,9 @@ class _AppCardState extends State<AppCard> {
           boxShadow: (w.shadow && !context.isDark)
               ? [
                   BoxShadow(
-                    color: AppColors.blue700.withValues(alpha: 0.06),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
+                    color: AppColors.blue600.withValues(alpha: 0.08),
+                    blurRadius: 22,
+                    offset: const Offset(0, 8),
                   ),
                 ]
               : null,
@@ -179,7 +179,7 @@ class _AppCardState extends State<AppCard> {
             decoration: BoxDecoration(
               gradient: w.gradient,
               borderRadius: radius,
-              border: w.gradient == null ? Border.all(color: context.border) : null,
+              border: (w.gradient == null && context.isDark) ? Border.all(color: context.border) : null,
             ),
             child: InkWell(
               borderRadius: radius,
@@ -215,7 +215,7 @@ class IconChip extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: background ?? (context.isDark ? AppColors.darkSurface2 : AppColors.blue100),
-        borderRadius: BorderRadius.circular(size * 0.34),
+        borderRadius: BorderRadius.circular(size * 0.5),
       ),
       child: Icon(icon, size: size * 0.5, color: color ?? context.cs.primary),
     );
@@ -267,7 +267,7 @@ class GradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !loading;
-    final radius = BorderRadius.circular(16);
+    final radius = BorderRadius.circular(28);
     return Opacity(
       opacity: onPressed == null && !loading ? 0.5 : 1,
       child: DecoratedBox(
@@ -275,9 +275,9 @@ class GradientButton extends StatelessWidget {
           borderRadius: radius,
           boxShadow: [
             BoxShadow(
-              color: AppColors.blue600.withValues(alpha: 0.28),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: AppColors.blue500.withValues(alpha: 0.35),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -290,7 +290,7 @@ class GradientButton extends StatelessWidget {
               borderRadius: radius,
               onTap: enabled ? onPressed : null,
               child: SizedBox(
-                height: 52,
+                height: 54,
                 child: Center(
                   child: loading
                       ? Row(
@@ -487,9 +487,9 @@ class ActionChipButton extends StatelessWidget {
       opacity: onTap == null ? 0.45 : 1,
       child: Material(
         color: c.withValues(alpha: context.isDark ? 0.16 : 0.09),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
