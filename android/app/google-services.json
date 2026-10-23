@@ -14,19 +14,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "814732092554-2jb80ubqb6sts43srcota951kagh4m66.apps.googleusercontent.com",
+          "client_id": "814732092554-l44jvk9f62eu13nc9a51rep1ulpcbl60.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.mirailabs.bayan_ai",
-            "certificate_hash": "5cdd1456d9fa3964ed585b3a824e7aec9f78f86c"
+            "certificate_hash": "8a7e07be0ada5c89f2b6928e8964534ef39bdd3c"
           }
         },
         {
-          "client_id": "814732092554-oaoq6beej3div978ebnpu5scm29ltfcr.apps.googleusercontent.com",
+          "client_id": "814732092554-vkfup4rmvibumb9b0bnjlc3mdh1n6dbf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.mirailabs.bayan_ai",
-            "certificate_hash": "d310e251848355d8b5cad7ebd5aa5aa10b3786c9"
+            "certificate_hash": "661a8c538a3bfe682ec2bf1d27d46bf5ce4fe7e0"
           }
         },
         {

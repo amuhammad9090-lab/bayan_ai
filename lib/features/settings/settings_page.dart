@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/ai_repository.dart';
+import '../../core/art.dart';
 import '../../core/app_info.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/common.dart';
+import '../shell/header_actions.dart';
 import '../../shared/widgets/logo_mark.dart';
 import '../auth/account_card.dart';
 import '../history/history_provider.dart';
@@ -95,97 +97,111 @@ class _SettingsPageState extends State<SettingsPage> {
         .followedBy([s.model])
         .first;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return FeatureScroll(
+          actions: const HeaderActions(),
+          gradient: AppColors.cardSettings,
+          shadow: AppColors.settings,
+          asset: Art.homeBanner,
+          fallback: AppIcons.settings,
+          title: 'Setelan',
+          subtitle: 'Akun, koneksi AI, tampilan, dan data aplikasi.',
+          onRefresh: () async {
+            await Future<void>.delayed(const Duration(milliseconds: 700));
+            if (mounted) setState(() {});
+          },
       children: [
-        const SectionHeader(title: 'Akun', subtitle: 'Profil dan sesi login'),
+
+        // ── Akun ──
+        const SectionLabel('Akun'),
         const AccountCard(),
-        const SizedBox(height: 22),
-        const SectionHeader(title: 'Koneksi AI', subtitle: 'Gemini API key & model'),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _key,
-                obscureText: _obscure,
-                autocorrect: false,
-                enableSuggestions: false,
-                onChanged: (_) => setState(() => _valid = null),
-                decoration: InputDecoration(
-                  labelText: 'API key Gemini',
-                  prefixIcon: const Icon(AppIcons.key, size: 19),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscure ? AppIcons.eye : AppIcons.eyeOff, size: 19),
-                    onPressed: () => setState(() => _obscure = !_obscure),
-                  ),
-                ),
-              ),
-              if (_valid != null) ...[
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(
-                      _valid! ? AppIcons.success : AppIcons.warning,
-                      size: 16,
-                      color: _valid! ? AppColors.success : AppColors.danger,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _valid! ? 'API key valid' : 'API key gagal / koneksi error',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: _valid! ? AppColors.success : AppColors.danger,
+        PageGap.section,
+
+        // ── Koneksi AI ──
+        const SectionLabel('Koneksi AI', hint: 'Gemini API key & model'),
+        GroupCard(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _key,
+                    obscureText: _obscure,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    onChanged: (_) => setState(() => _valid = null),
+                    decoration: InputDecoration(
+                      labelText: 'API key Gemini',
+                      prefixIcon: const Icon(AppIcons.key, size: 19),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure ? AppIcons.eye : AppIcons.eyeOff, size: 19),
+                        onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _testing ? null : _test,
-                      icon: _testing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(AppIcons.wifi, size: 17),
-                      label: const Text('Tes koneksi'),
-                    ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _save,
-                      icon: const Icon(AppIcons.check, size: 17),
-                      label: const Text('Simpan'),
+                  if (_valid != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(
+                          _valid! ? AppIcons.success : AppIcons.warning,
+                          size: 16,
+                          color: _valid! ? AppColors.success : AppColors.danger,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _valid! ? 'API key valid' : 'API key gagal / koneksi error',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: _valid! ? AppColors.success : AppColors.danger,
+                          ),
+                        ),
+                      ],
                     ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TonalButton(
+                          icon: AppIcons.wifi,
+                          label: _testing ? 'Menguji…' : 'Tes koneksi',
+                          onTap: _testing ? null : _test,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TonalButton(
+                          filled: true,
+                          icon: AppIcons.check,
+                          label: 'Simpan',
+                          onTap: _save,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              const Divider(),
-              _Tile(
-                icon: AppIcons.cpu,
-                title: 'Model AI',
-                value: modelLabel,
-                onTap: () => showModelSheet(context),
-              ),
-            ],
-          ),
+            ),
+            _Tile(
+              icon: AppIcons.cpu,
+              tint: AppColors.settings,
+              title: 'Model AI',
+              value: modelLabel,
+              onTap: () => showModelSheet(context),
+            ),
+          ],
         ),
-        const SizedBox(height: 22),
+        PageGap.section,
 
-        const SectionHeader(title: 'Tampilan', subtitle: 'Tema dan ukuran teks Arab'),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
+        // ── Tampilan ──
+        const SectionLabel('Tampilan', hint: 'Tema dan ukuran teks Arab'),
+        GroupCard(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<ThemeMode>(
                   showSelectedIcon: false,
@@ -213,52 +229,62 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
-              Row(
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
                 children: [
-                  const Icon(AppIcons.type, size: 18),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text('Ukuran teks Arab',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                  Row(
+                    children: [
+                      const Icon(AppIcons.type, size: 18),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Ukuran teks Arab',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Text('${s.arabicSize.round()}',
+                          style: TextStyle(fontSize: 13, color: context.muted)),
+                    ],
                   ),
-                  Text('${s.arabicSize.round()}',
-                      style: TextStyle(fontSize: 13, color: context.muted)),
+                  Slider(
+                    value: s.arabicSize,
+                    min: 20,
+                    max: 40,
+                    divisions: 20,
+                    onChanged: s.setArabicSize,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: context.surface2,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: ArabicText(
+                      'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
+                      size: s.arabicSize,
+                      selectable: false,
+                      align: TextAlign.center,
+                    ),
+                  ),
                 ],
               ),
-              Slider(
-                value: s.arabicSize,
-                min: 20,
-                max: 40,
-                divisions: 20,
-                onChanged: s.setArabicSize,
-              ),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: context.surface2,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ArabicText(
-                  'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-                  size: s.arabicSize,
-                  selectable: false,
-                  align: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(height: 22),
+        PageGap.section,
 
-        const SectionHeader(title: 'Data'),
-        AppCard(
-          child: Column(
-            children: [
-              Row(
+        // ── Data ──
+        const SectionLabel('Data'),
+        GroupCard(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
                 children: [
-                  const IconChip(icon: AppIcons.database, size: 38),
+                  const _RowIcon(icon: AppIcons.database, tint: AppColors.orange),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Column(
@@ -273,32 +299,32 @@ class _SettingsPageState extends State<SettingsPage> {
                   Switch(value: s.autoSave, onChanged: s.setAutoSave),
                 ],
               ),
-              const SizedBox(height: 8),
-              const Divider(),
-              _Tile(
-                icon: AppIcons.database,
-                title: 'Bersihkan cache AI',
-                value: '${context.read<AiCache>().size} tersimpan',
-                onTap: () async {
-                  final cache = context.read<AiCache>();
-                  await cache.clear();
-                  if (!context.mounted) return;
-                  setState(() {});
-                  showSnack(context, 'Cache AI dibersihkan');
-                },
-              ),
-              const Divider(),
-              _Tile(
-                icon: AppIcons.trash,
-                title: 'Hapus semua riwayat',
-                danger: true,
-                onTap: _confirmClear,
-              ),
-            ],
-          ),
+            ),
+            _Tile(
+              icon: AppIcons.database,
+              tint: AppColors.settings,
+              title: 'Bersihkan cache',
+              value: '${context.read<AiCache>().size} tersimpan',
+              onTap: () async {
+                final cache = context.read<AiCache>();
+                await cache.clear();
+                if (!context.mounted) return;
+                setState(() {});
+                showSnack(context, 'Cache AI dibersihkan');
+              },
+            ),
+            _Tile(
+              icon: AppIcons.trash,
+              title: 'Hapus semua riwayat',
+              danger: true,
+              onTap: _confirmClear,
+            ),
+          ],
         ),
-        const SizedBox(height: 22),
+        PageGap.section,
 
+        // ── Tentang ──
+        const SectionLabel('Tentang'),
         AppCard(
           onTap: () => showAboutSheet(context),
           child: Row(
@@ -324,11 +350,31 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+class _RowIcon extends StatelessWidget {
+  final IconData icon;
+  final Color tint;
+  const _RowIcon({required this.icon, required this.tint});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: tint.withValues(alpha: context.isDark ? 0.22 : 0.14),
+      ),
+      child: Icon(icon, size: 19, color: context.tone(tint)),
+    );
+  }
+}
+
 class _Tile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? value;
   final bool danger;
+  final Color? tint;
   final VoidCallback onTap;
   const _Tile({
     required this.icon,
@@ -336,6 +382,7 @@ class _Tile extends StatelessWidget {
     required this.onTap,
     this.value,
     this.danger = false,
+    this.tint,
   });
 
   @override
@@ -348,22 +395,38 @@ class _Tile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 19, color: c ?? context.cs.primary),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: (c ?? tint ?? context.accent)
+                    .withValues(alpha: context.isDark ? 0.22 : 0.14),
+              ),
+              child: Icon(icon, size: 19, color: c ?? tint ?? context.accent),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: c),
               ),
             ),
-            if (value != null)
-              Flexible(
+            if (value != null) ...[
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 130),
                 child: Text(
                   value!,
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12.5, color: context.muted),
                 ),
               ),
+            ],
             const SizedBox(width: 6),
             Icon(AppIcons.chevronRight, size: 17, color: context.muted),
           ],

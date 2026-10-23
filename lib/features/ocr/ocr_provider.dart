@@ -18,6 +18,10 @@ class OcrProvider extends ChangeNotifier {
   bool _loading = false;
   String? _error;
 
+  /// Naik tiap clear/setImage/run: hasil request lama dibuang kalau sudah basi.
+  int _gen = 0;
+  bool _disposed = false;
+
   XFile? get image => _image;
   Uint8List? get bytes => _bytes;
   String get text => _text;
@@ -27,6 +31,8 @@ class OcrProvider extends ChangeNotifier {
   bool get hasText => _text.trim().isNotEmpty;
 
   void setImage(XFile f, Uint8List bytes) {
+    _gen++;
+    _loading = false;
     _image = f;
     _bytes = bytes;
     _setText('');
@@ -35,6 +41,7 @@ class OcrProvider extends ChangeNotifier {
   }
 
   void clear() {
+    _gen++;
     _image = null;
     _bytes = null;
     _error = null;
@@ -59,21 +66,37 @@ class OcrProvider extends ChangeNotifier {
     final img = _image;
     final data = _bytes;
     if (img == null || data == null || _loading) return;
+    final gen = ++_gen;
     _loading = true;
     _error = null;
     notifyListeners();
     try {
       final result = await _ai.ocr(data, img.mimeType ?? _mimeOf(img.name));
+      if (gen != _gen) return;
       _setText(result);
       await _history.record(HistoryType.ocr, '', result);
     } on AiException catch (e) {
-      _error = e.message;
+      if (gen == _gen) _error = e.message;
     } catch (e) {
-      _error = 'Terjadi kesalahan: $e';
+      if (gen == _gen) _error = 'Terjadi kesalahan: $e';
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (gen == _gen) {
+        _loading = false;
+        notifyListeners();
+      }
     }
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _gen++;
+    super.dispose();
   }
 
   String _mimeOf(String path) {

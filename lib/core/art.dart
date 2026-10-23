@@ -33,7 +33,8 @@ class ArtImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final img = Image.asset(
       asset,
       fit: fit,
       filterQuality: FilterQuality.medium,
@@ -44,6 +45,12 @@ class ArtImage extends StatelessWidget {
           color: fallbackColor.withValues(alpha: 0.9),
         ),
       ),
+    );
+    if (!dark) return img;
+    // Dark mode: redupkan ilustrasi pastel sedikit biar nggak silau.
+    return ColorFiltered(
+      colorFilter: const ColorFilter.mode(Color(0xFFD9DCE6), BlendMode.modulate),
+      child: img,
     );
   }
 }

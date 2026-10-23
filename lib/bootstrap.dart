@@ -47,13 +47,24 @@ class AppDeps {
       store,
     );
 
+    final auth = AuthProvider(firebaseReady: firebaseReady);
+    // Riwayat & cache AI dipisah per akun: ikut berganti saat login/logout.
+    void syncUser() {
+      final uid = auth.user?.uid;
+      history.switchUser(uid);
+      cached.switchUser(uid);
+    }
+
+    auth.addListener(syncUser);
+    syncUser();
+
     return AppDeps._(
       store: store,
       handoff: HandoffService(),
       settings: settings,
       history: history,
       cached: cached,
-      auth: AuthProvider(firebaseReady: firebaseReady),
+      auth: auth,
     );
   }
 

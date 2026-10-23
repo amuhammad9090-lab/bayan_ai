@@ -18,7 +18,18 @@ class CachedAiRepository implements AiRepository, AiCache {
     _load();
   }
 
-  static const _key = 'ai_cache_v1';
+  static const _baseKey = 'ai_cache_v1';
+  String? _uid;
+
+  String get _key => _uid == null ? _baseKey : '${_baseKey}_$_uid';
+
+  /// Ganti pemilik cache (dipanggil saat login/logout). null = tamu.
+  void switchUser(String? uid) {
+    if (uid == _uid) return;
+    _uid = uid;
+    _entries = {};
+    _load();
+  }
 
   final AiRepository _inner;
   final AiConfigSource _config;
@@ -30,6 +41,7 @@ class CachedAiRepository implements AiRepository, AiCache {
   Map<String, Map<String, dynamic>> _entries = {};
 
   void _load() {
+    _entries = {};
     final raw = _store.getString(_key);
     if (raw == null) return;
     try {

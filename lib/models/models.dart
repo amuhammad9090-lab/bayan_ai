@@ -10,6 +10,13 @@ String stripFences(String raw) {
   return s.trim();
 }
 
+/// Teks mentah dianggap "kosong" kalau benar-benar kosong atau cuma kerangka
+/// JSON tanpa isi (mis. {"hasil": []}) — jangan ditampilkan ke pengguna.
+bool _blankRaw(String raw) {
+  final t = stripFences(raw);
+  return t.isEmpty || t.startsWith('{') || t.startsWith('[');
+}
+
 String _s(dynamic v) => v?.toString().trim() ?? '';
 
 // ───────────────────────── Nahwu ─────────────────────────
@@ -57,6 +64,7 @@ class NahwuAnalysis {
   });
 
   bool get isStructured => words.isNotEmpty;
+  bool get isEmpty => !isStructured && _blankRaw(raw);
 
   factory NahwuAnalysis.parse(String text) {
     try {
@@ -152,6 +160,7 @@ class QuranSearchResult {
   });
 
   bool get isStructured => ayat.isNotEmpty;
+  bool get isEmpty => !isStructured && _blankRaw(raw);
 
   factory QuranSearchResult.parse(String text) {
     try {

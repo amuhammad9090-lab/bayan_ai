@@ -4,12 +4,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/art.dart';
 import '../../core/handoff.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/animations.dart';
 import '../../shared/widgets/bound_text.dart';
 import '../../shared/widgets/common.dart';
+import '../shell/header_actions.dart';
 import '../settings/settings_provider.dart';
 import 'image_source_sheet.dart';
 import 'ocr_provider.dart';
@@ -51,158 +53,193 @@ class _OcrPageState extends State<OcrPage> {
     final handoff = context.read<HandoffService>();
     final has = ocr.hasText;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return FeatureScroll(
+          actions: const HeaderActions(),
+          gradient: AppColors.cardOcr,
+          shadow: AppColors.ocr,
+          asset: Art.homeOcr,
+          fallback: AppIcons.ocr,
+          title: 'Scan Mushaf',
+          subtitle: 'Foto halaman mushaf, AI membaca teks Arabnya lengkap dengan harakat.',
+          onRefresh: () async {
+            if (ocr.image != null) {
+              await ocr.run();
+            } else {
+              await Future<void>.delayed(const Duration(milliseconds: 700));
+            }
+          },
       children: [
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: AspectRatio(
-              aspectRatio: 4 / 3,
-              child: ocr.image == null
-                  ? InkWell(
-                      onTap: () => _pick(),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const IconChip(icon: AppIcons.imagePlus, size: 60)
-                              .animate(onPlay: (c) => c.repeat(reverse: true))
-                              .moveY(begin: -5, end: 5, duration: 1400.ms, curve: Curves.easeInOut),
-                          const SizedBox(height: 14),
-                          const Text(
-                            'Pilih gambar mushaf',
-                            style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            kIsWeb ? 'Klik untuk memilih file gambar' : 'Ketuk untuk kamera atau galeri',
-                            style: TextStyle(fontSize: 12, color: context.muted),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.memory(ocr.bytes!, fit: BoxFit.cover),
-                        if (ocr.loading) const Positioned.fill(child: ScanOverlay()),
-                        Positioned(
-                          right: 10,
-                          top: 10,
-                          child: Row(
-                            children: [
-                              _OverlayButton(icon: AppIcons.replace, onTap: () => _pick()),
-                              const SizedBox(width: 8),
-                              _OverlayButton(icon: AppIcons.close, onTap: ocr.clear),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
 
-        Row(
-          children: [
-            if (!kIsWeb) ...[
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pick(ImageSource.camera),
-                  icon: const Icon(AppIcons.camera, size: 18),
-                  label: const Text('Kamera'),
+        // ── 1. Kartu kerja: gambar + sumber + aksi utama ──
+        const SectionLabel('Gambar', hint: 'Satu halaman atau satu ayat'),
+        AppCard(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: ocr.image == null
+                      ? Material(
+                          color: context.surface2,
+                          child: InkWell(
+                            onTap: () => _pick(),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const IconChip(icon: AppIcons.imagePlus, size: 52)
+                                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                                    .moveY(begin: -4, end: 4, duration: 1400.ms, curve: Curves.easeInOut),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Belum ada gambar',
+                                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  kIsWeb ? 'Klik untuk memilih file' : 'Ketuk untuk memilih',
+                                  style: TextStyle(fontSize: 11.5, color: context.muted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.memory(ocr.bytes!, fit: BoxFit.cover),
+                            if (ocr.loading) const Positioned.fill(child: ScanOverlay()),
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: _OverlayButton(icon: AppIcons.close, onTap: ocr.clear),
+                            ),
+                          ],
+                        ),
                 ),
               ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _pick(ImageSource.gallery),
-                icon: const Icon(AppIcons.gallery, size: 18),
-                label: const Text(kIsWeb ? 'Pilih gambar' : 'Galeri'),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (!kIsWeb) ...[
+                    Expanded(
+                      child: TonalButton(
+                        icon: AppIcons.camera,
+                        label: 'Kamera',
+                        onTap: () => _pick(ImageSource.camera),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(
+                    child: TonalButton(
+                      icon: AppIcons.gallery,
+                      label: kIsWeb ? 'Pilih gambar' : 'Galeri',
+                      onTap: () => _pick(ImageSource.gallery),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              GradientButton(
+                label: ocr.loading ? 'Memproses…' : 'Jalankan OCR',
+                icon: AppIcons.sparkles,
+                loading: ocr.loading,
+                onPressed: ocr.image == null ? null : ocr.run,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 14),
+        PageGap.section,
 
-        GradientButton(
-          label: ocr.loading ? 'Memproses…' : 'Jalankan OCR',
-          icon: AppIcons.sparkles,
-          loading: ocr.loading,
-          onPressed: ocr.image == null ? null : ocr.run,
-        ),
-        const SizedBox(height: 22),
-
-        SectionHeader(
-          title: 'Hasil OCR',
-          subtitle: 'Bisa diedit kalau ada huruf yang keliru',
+        // ── 2. Hasil + aksi lanjutan dalam satu kartu ──
+        SectionLabel(
+          'Hasil OCR',
+          hint: 'Bisa diedit kalau ada huruf yang keliru',
           trailing: has
-              ? const Pill(label: 'Bisa diedit', color: AppColors.blue600, icon: AppIcons.type)
+              ? Pill(label: 'Bisa diedit', color: context.cs.primary, icon: AppIcons.type)
               : null,
         ),
-
         if (ocr.error != null) ...[
           ErrorCard(message: ocr.error!),
-          const SizedBox(height: 12),
+          PageGap.inner,
         ],
-
-        if (ocr.loading)
-          const SkeletonList(
-            count: 1,
-            height: 150,
-            thinking: ['Membaca tulisan Arab…', 'Mengenali harakat…', 'Merapikan hasil…'],
-          )
-        else
-          BoundText(
-            source: ocr,
-            read: () => ocr.text,
-            version: () => ocr.textVersion,
-            onChanged: ocr.onUserEdit,
-            builder: (context, controller) => ArabicField(
-              controller: controller,
-              hint: 'Teks hasil OCR akan muncul di sini…',
-              size: arabicSize,
-              font: 'LPMQ',
-              minLines: 5,
-              maxLines: 12,
-            ),
+        AppCard(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (ocr.loading)
+                const SkeletonList(
+                  count: 1,
+                  height: 150,
+                  thinking: ['Membaca tulisan Arab…', 'Mengenali harakat…', 'Merapikan hasil…'],
+                )
+              else
+                BoundText(
+                  source: ocr,
+                  read: () => ocr.text,
+                  version: () => ocr.textVersion,
+                  onChanged: ocr.onUserEdit,
+                  builder: (context, controller) => ArabicField(
+                    controller: controller,
+                    hint: 'Teks hasil OCR akan muncul di sini…',
+                    size: arabicSize,
+                    font: 'LPMQ',
+                    minLines: 5,
+                    maxLines: 12,
+                  ),
+                ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TonalButton(
+                      icon: AppIcons.copy,
+                      label: 'Salin',
+                      onTap: has ? () => copyText(context, ocr.text, label: 'Hasil OCR') : null,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TonalButton(
+                      icon: AppIcons.nahwu,
+                      label: 'Nahwu',
+                      onTap: has ? () => handoff.send(HandoffTarget.nahwu, ocr.text.trim()) : null,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TonalButton(
+                      icon: AppIcons.quran,
+                      label: "Qur'an",
+                      onTap: has ? () => handoff.send(HandoffTarget.quran, ocr.text.trim()) : null,
+                    ),
+                  ),
+                ],
+              ),
+              if (has || ocr.image != null) ...[
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: ocr.clear,
+                    icon: const Icon(AppIcons.trash, size: 15),
+                    label: const Text('Bersihkan'),
+                    style: TextButton.styleFrom(foregroundColor: context.tone(AppColors.danger)),
+                  ),
+                ),
+              ],
+            ],
           ),
-        const SizedBox(height: 12),
-
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ActionChipButton(
-              icon: AppIcons.copy,
-              label: 'Salin',
-              onTap: has ? () => copyText(context, ocr.text, label: 'Hasil OCR') : null,
-            ),
-            ActionChipButton(
-              icon: AppIcons.nahwu,
-              label: 'Analisis Nahwu',
-              onTap: has ? () => handoff.send(HandoffTarget.nahwu, ocr.text.trim()) : null,
-            ),
-            ActionChipButton(
-              icon: AppIcons.quran,
-              label: "Cari di Qur'an",
-              onTap: has ? () => handoff.send(HandoffTarget.quran, ocr.text.trim()) : null,
-            ),
-            ActionChipButton(
-              icon: AppIcons.trash,
-              label: 'Bersihkan',
-              danger: true,
-              onTap: has || ocr.image != null ? ocr.clear : null,
-            ),
-          ],
         ),
-        const SizedBox(height: 18),
-        const NoticeCard(
-          message: 'Tips: gunakan foto yang terang, lurus, dan tidak buram. '
-              'Crop satu halaman atau satu ayat biar hasilnya lebih akurat.',
+        PageGap.section,
+        const Footnote(
+          'Tips: pakai foto yang terang, lurus, dan tidak buram. '
+          'Crop satu halaman atau satu ayat biar hasilnya lebih akurat.',
+          icon: AppIcons.lightbulb,
         ),
       ],
     );

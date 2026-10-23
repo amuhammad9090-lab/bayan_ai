@@ -6,11 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/animations.dart';
 import '../../shared/widgets/common.dart';
-import '../../shared/widgets/logo_mark.dart';
 import 'auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -333,11 +333,11 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(36)),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(44)),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(24, top + 28, 24, 32),
-        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+        decoration: BoxDecoration(gradient: AppColors.cardBlue.forMode(context.isDark)),
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
@@ -349,7 +349,14 @@ class _Header extends StatelessWidget {
                       reverse: true,
                       builder: (context, t) => Transform.translate(
                         offset: Offset(0, -6 * Curves.easeInOut.transform(t)),
-                        child: const LogoMark(size: 68),
+                        child: const SizedBox(
+                          height: 118,
+                          child: ArtImage(
+                            asset: Art.homeBanner,
+                            fallbackIcon: AppIcons.key,
+                            fallbackSize: 64,
+                          ),
+                        ),
                       ),
                     )
                     .animate()
@@ -412,12 +419,11 @@ class _AuthTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
+      height: 52,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: context.surface2,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.border),
+        borderRadius: BorderRadius.circular(26),
       ),
       child: Stack(
         children: [
@@ -431,7 +437,7 @@ class _AuthTabs extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: AppColors.buttonGradient,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.blue600.withValues(alpha: 0.3),

@@ -146,19 +146,8 @@ class _SlideView extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Blob "kuas" di belakang ilustrasi.
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: context.isDark
-                              ? slide.blob.withValues(alpha: 0.25)
-                              : slide.blob,
-                        ),
-                      ),
-                    ),
                     Padding(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(4),
                       child: ArtImage(
                         asset: slide.asset,
                         fallbackIcon: slide.fallback,

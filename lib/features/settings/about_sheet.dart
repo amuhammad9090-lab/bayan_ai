@@ -40,7 +40,7 @@ Future<void> showAboutSheet(BuildContext context) {
           ),
         ),
         const SizedBox(height: 14),
-        Text('© 2025 Arie Muhammad', style: TextStyle(fontSize: 11.5, color: ctx.muted)),
+        Text('© 2026 Arie Muhammad', style: TextStyle(fontSize: 11.5, color: ctx.muted)),
       ],
     ),
   );

@@ -2,17 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/art.dart';
 import '../../core/handoff.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../shared/widgets/bound_text.dart';
 import '../../shared/widgets/common.dart';
+import '../shell/header_actions.dart';
 import '../settings/settings_provider.dart';
 import 'quran_provider.dart';
 
 class QuranPage extends StatelessWidget {
   const QuranPage({super.key});
+
+  static const _chipColors = [
+    AppColors.blue600,
+    AppColors.quran,
+    AppColors.purple,
+    AppColors.teal,
+    AppColors.blue500,
+  ];
 
   void _search(BuildContext context) {
     final quran = context.read<QuranProvider>();
@@ -30,58 +40,99 @@ class QuranPage extends StatelessWidget {
     final arabicSize = context.select<SettingsProvider, double>((s) => s.arabicSize);
     final result = quran.result;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return FeatureScroll(
+          actions: const HeaderActions(),
+          gradient: AppColors.cardQuran,
+          shadow: AppColors.quran,
+          asset: Art.homeQuran,
+          fallback: AppIcons.quran,
+          title: "Cari Ayat & Tafsir",
+          subtitle: 'Ketik topik atau nama surah, dapatkan ayat, terjemah, dan tafsir.',
+          onRefresh: () async {
+            if (quran.query.trim().isNotEmpty) {
+              await quran.search();
+            } else {
+              await Future<void>.delayed(const Duration(milliseconds: 700));
+            }
+          },
       children: [
-        BoundText(
-          source: quran,
-          read: () => quran.query,
-          version: () => quran.queryVersion,
-          onChanged: quran.onUserEdit,
-          builder: (context, controller) => TextField(
-            controller: controller,
-            textInputAction: TextInputAction.search,
-            onSubmitted: (_) => _search(context),
-            decoration: InputDecoration(
-              hintText: 'Topik, kata kunci, atau nama surah…',
-              prefixIcon: const Icon(AppIcons.search, size: 20),
-              suffixIcon: quran.query.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(AppIcons.close, size: 18),
-                      onPressed: quran.clear,
-                    ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: QuranProvider.suggestions.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, i) {
-              final s = QuranProvider.suggestions[i];
-              return ActionChip(
-                label: Text(s, style: const TextStyle(fontSize: 12)),
-                onPressed: () {
-                  quran.setQuery(s);
-                  _search(context);
-                },
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-        GradientButton(
-          label: quran.loading ? 'Mencari…' : 'Cari dengan AI',
-          icon: AppIcons.sparkles,
-          loading: quran.loading,
-          onPressed: () => _search(context),
-        ),
-        const SizedBox(height: 22),
 
+        // ── Kartu kerja: kolom cari + saran + aksi utama ──
+        const SectionLabel('Pencarian', hint: 'Topik, kata kunci, atau nama surah'),
+        AppCard(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BoundText(
+                source: quran,
+                read: () => quran.query,
+                version: () => quran.queryVersion,
+                onChanged: quran.onUserEdit,
+                builder: (context, controller) => TextField(
+                  controller: controller,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _search(context),
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: ayat tentang sabar',
+                    prefixIcon: const Icon(AppIcons.search, size: 20),
+                    suffixIcon: quran.query.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(AppIcons.close, size: 18),
+                            onPressed: quran.clear,
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 34,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: QuranProvider.suggestions.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final s = QuranProvider.suggestions[i];
+                    final c = _chipColors[i % _chipColors.length];
+                    return ActionChip(
+                      label: Text(
+                        s,
+                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c),
+                      ),
+                      backgroundColor: c.withValues(alpha: context.isDark ? 0.2 : 0.12),
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      onPressed: () {
+                        quran.setQuery(s);
+                        _search(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              GradientButton(
+                label: quran.loading ? 'Mencari…' : 'Cari dengan AI',
+                icon: AppIcons.sparkles,
+                loading: quran.loading,
+                onPressed: () => _search(context),
+              ),
+            ],
+          ),
+        ),
+        PageGap.section,
+
+        SectionLabel(
+          'Hasil',
+          trailing: (result != null && result.isStructured)
+              ? Pill(
+                  label: '${result.ayat.length} ayat',
+                  color: AppColors.quran,
+                  icon: AppIcons.bookMarked,
+                )
+              : null,
+        ),
         if (quran.loading)
           const SkeletonList(
             count: 3,
@@ -103,28 +154,28 @@ class QuranPage extends StatelessWidget {
         else ...[
           if (result.ringkasan.isNotEmpty) ...[
             AppCard(
-              gradient: AppColors.heroGradient,
+              color: AppColors.quran.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(AppIcons.sparkles, size: 18, color: Colors.white),
+                  Icon(AppIcons.sparkles, size: 18, color: context.tone(AppColors.quran)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       result.ringkasan,
-                      style: const TextStyle(fontSize: 13, height: 1.55, color: Colors.white),
+                      style: const TextStyle(fontSize: 13, height: 1.55),
                     ),
                   ),
                 ],
               ),
             ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
-            const SizedBox(height: 14),
+            PageGap.inner,
           ],
           if (result.isStructured)
             for (var i = 0; i < result.ayat.length; i++)
               Padding(
-                padding: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: _AyatCard(ayat: result.ayat[i], arabicSize: arabicSize)
                     .animate(delay: (120 + i * 100).ms)
                     .fadeIn(duration: 420.ms)
@@ -132,10 +183,10 @@ class QuranPage extends StatelessWidget {
               )
           else
             AppCard(child: RichResult(text: result.raw, arabicSize: arabicSize)),
-          const NoticeCard(
-            icon: AppIcons.info,
-            message: 'Hasil dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
-                'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum dipakai mengajar.',
+          const SizedBox(height: 6),
+          const Footnote(
+            'Hasil dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
+            'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum dipakai mengajar.',
           ),
         ],
       ],
@@ -166,7 +217,7 @@ class _AyatCardState extends State<_AyatCard> {
             children: [
               Pill(
                 label: a.nomor.isEmpty ? a.surah : 'QS. ${a.surah} · ${a.nomor}',
-                color: AppColors.blue600,
+                color: context.cs.primary,
                 icon: AppIcons.bookMarked,
               ),
               const Spacer(),

@@ -60,63 +60,83 @@ class AccountCard extends StatelessWidget {
     final sub = guest ? 'Firebase belum dikonfigurasi' : (user?.email ?? '');
 
     return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              UserAvatar(user: guest ? null : user, size: 52),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (sub.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                UserAvatar(user: guest ? null : user, size: 48),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        sub,
+                        name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: context.muted),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                       ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              if (!guest && auth.firestoreOk != null)
-                Flexible(
-                  child: auth.firestoreOk == true
-                      ? const Pill(
-                          label: 'Tersinkron ke Firestore',
-                          color: AppColors.success,
-                          icon: AppIcons.cloud,
-                        )
-                      : const Pill(
-                          label: 'Firestore gagal, cek Rules',
-                          color: AppColors.danger,
-                          icon: AppIcons.warning,
+                      if (sub.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          sub,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12.5, color: context.muted),
                         ),
+                      ],
+                      if (!guest && auth.firestoreOk != null) ...[
+                        const SizedBox(height: 8),
+                        auth.firestoreOk == true
+                            ? const Pill(
+                                label: 'Tersinkron',
+                                color: AppColors.success,
+                                icon: AppIcons.cloud,
+                              )
+                            : const Pill(
+                                label: 'Firestore gagal, cek Rules',
+                                color: AppColors.danger,
+                                icon: AppIcons.warning,
+                              ),
+                      ],
+                    ],
+                  ),
                 ),
-              const Spacer(),
-              ActionChipButton(
-                icon: guest ? AppIcons.logIn : AppIcons.logOut,
-                label: guest ? 'Masuk' : 'Keluar',
-                danger: !guest,
-                onTap: () => _logout(context),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          InkWell(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+            onTap: () => _logout(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              child: Row(
+                children: [
+                  Icon(
+                    guest ? AppIcons.logIn : AppIcons.logOut,
+                    size: 18,
+                    color: guest ? context.cs.primary : context.tone(AppColors.danger),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      guest ? 'Masuk ke akun' : 'Keluar dari akun',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: guest ? context.cs.primary : context.tone(AppColors.danger),
+                      ),
+                    ),
+                  ),
+                  Icon(AppIcons.chevronRight, size: 17, color: context.muted),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

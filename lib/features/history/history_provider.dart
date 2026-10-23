@@ -14,18 +14,31 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
     _load();
   }
 
-  static const _key = 'history_v1';
+  static const _baseKey = 'history_v1';
   static const _max = 60;
 
   final KeyValueStore _store;
   final bool Function() _enabled;
   List<HistoryItem> _items = [];
+  String? _uid;
+
+  String get _key => _uid == null ? _baseKey : '${_baseKey}_$_uid';
+
+  /// Ganti pemilik riwayat (dipanggil saat login/logout). null = tamu.
+  void switchUser(String? uid) {
+    if (uid == _uid) return;
+    _uid = uid;
+    _items = [];
+    _load();
+    notifyListeners();
+  }
 
   List<HistoryItem> get items => List.unmodifiable(_items);
   List<HistoryItem> get recent => _items.take(4).toList();
   int count(HistoryType t) => _items.where((e) => e.type == t).length;
 
   void _load() {
+    _items = [];
     final raw = _store.getString(_key);
     if (raw == null) return;
     try {
@@ -37,6 +50,12 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
     } catch (_) {
       _items = [];
     }
+  }
+
+  /// Muat ulang dari penyimpanan (tarik-untuk-refresh).
+  void reload() {
+    _load();
+    notifyListeners();
   }
 
   Future<void> _persist() => _store.setString(

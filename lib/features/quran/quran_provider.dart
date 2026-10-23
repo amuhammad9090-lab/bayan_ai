@@ -24,6 +24,10 @@ class QuranProvider extends ChangeNotifier {
   String? _error;
   QuranSearchResult? _result;
 
+  /// Naik tiap clear/search: hasil request lama dibuang kalau sudah basi.
+  int _gen = 0;
+  bool _disposed = false;
+
   String get query => _query;
   int get queryVersion => _queryVersion;
   bool get loading => _loading;
@@ -53,6 +57,8 @@ class QuranProvider extends ChangeNotifier {
   }
 
   void clear() {
+    _gen++;
+    _loading = false;
     _query = '';
     _queryVersion++;
     _result = null;
@@ -63,26 +69,42 @@ class QuranProvider extends ChangeNotifier {
   Future<void> search() async {
     final q = _query.trim();
     if (q.isEmpty || _loading) return;
+    final gen = ++_gen;
     _loading = true;
     _error = null;
     _result = null;
     notifyListeners();
     try {
       final r = await _ai.searchQuran(q);
-      _result = r;
-      await _history.record(HistoryType.quran, q, r.toPlainText());
+      if (gen != _gen) return;
+      if (r.isEmpty) {
+        _error = 'Belum ada ayat yang cocok dengan "$q". '
+            'Coba kata kunci lain, misalnya topik atau nama surah.';
+      } else {
+        _result = r;
+        await _history.record(HistoryType.quran, q, r.toPlainText());
+      }
     } on AiException catch (e) {
-      _error = e.message;
+      if (gen == _gen) _error = e.message;
     } catch (e) {
-      _error = 'Terjadi kesalahan: $e';
+      if (gen == _gen) _error = 'Terjadi kesalahan: $e';
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (gen == _gen) {
+        _loading = false;
+        notifyListeners();
+      }
     }
   }
 
   @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
+    _gen++;
     _sub.cancel();
     super.dispose();
   }

@@ -22,6 +22,12 @@ class AppColors {
 
   // Aksen kartu & ikon (oranye, ungu, tosca, hijau, peach).
   static const orange = Color(0xFFF5A623);
+  // Aksen fitur Qur'an: tosca-aqua (agak ke cyan, beda tipis dari tosca Setelan).
+  static const quran = Color(0xFF2FBFCF);
+  // Aksen fitur OCR (Pindai): biru royal lembut, serumpun dengan tema biru muda.
+  static const ocr = Color(0xFF5E82E8);
+  // Aksen Setelan: abu-biru netral (slate).
+  static const slate = Color(0xFF6B7BA0);
   static const orangeLight = Color(0xFFFBC568);
   static const purple = Color(0xFF7B7FC6);
   static const purpleLight = Color(0xFFA3A6DC);
@@ -39,12 +45,12 @@ class AppColors {
 
   // Dark
   // Dark mode "kalem": biru-abu lembut, bukan navy pekat.
-  static const darkBg = Color(0xFF1A2438);
-  static const darkSurface = Color(0xFF232F49);
-  static const darkSurface2 = Color(0xFF2C3A58);
-  static const darkBorder = Color(0xFF3B4B6F);
-  static const darkText = Color(0xFFE9EEFA);
-  static const darkMuted = Color(0xFFA9B6D1);
+  static const darkBg = Color(0xFF0F1729);
+  static const darkSurface = Color(0xFF18223A);
+  static const darkSurface2 = Color(0xFF212D4A);
+  static const darkBorder = Color(0xFF2B3957);
+  static const darkText = Color(0xFFE8EEFB);
+  static const darkMuted = Color(0xFF9DAECD);
 
   static const danger = Color(0xFFE5484D);
   static const success = Color(0xFF16A34A);
@@ -67,6 +73,16 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF6CC2FA), Color(0xFF3FA9F2)],
   );
+  static const cardOcr = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF8FB0FA), Color(0xFF5E82E8)],
+  );
+  static const cardQuran = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF74DDE8), Color(0xFF2FBFCF)],
+  );
   static const cardOrange = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -77,10 +93,22 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF9EA1DE), Color(0xFF7B7FC6)],
   );
+  static const cardSlate = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF93A3C6), Color(0xFF6B7BA0)],
+  );
   static const cardTeal = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF7FE4DE), Color(0xFF4FD3CC)],
+  );
+  // Setelan: hijau segar (beda dari tosca Qur'an).
+  static const settings = Color(0xFF34C17C);
+  static const cardSettings = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF86E6A9), Color(0xFF34C17C)],
   );
 }
 
@@ -276,13 +304,131 @@ class AppTheme {
   }
 }
 
+extension GradientDim on Gradient {
+  /// Di dark mode gradien kartu diredupkan sedikit (lebih gelap, sedikit
+  /// kurang jenuh) supaya nggak menyilaukan dan teks putih tetap terbaca.
+  Gradient forMode(bool dark) {
+    final g = this;
+    if (!dark || g is! LinearGradient) return this;
+    Color dim(Color c) {
+      final h = HSLColor.fromColor(c);
+      return h
+          .withLightness((h.lightness * 0.78).clamp(0.0, 1.0))
+          .withSaturation((h.saturation * 0.92).clamp(0.0, 1.0))
+          .toColor();
+    }
+
+    return LinearGradient(
+      begin: g.begin,
+      end: g.end,
+      colors: g.colors.map(dim).toList(),
+      stops: g.stops,
+    );
+  }
+}
+
 extension ThemeX on BuildContext {
   ColorScheme get cs => Theme.of(this).colorScheme;
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
   Color get muted => isDark ? AppColors.darkMuted : AppColors.lightMuted;
   Color get border => isDark ? AppColors.darkBorder : AppColors.lightBorder;
-  Color get surface2 => isDark ? AppColors.darkSurface2 : AppColors.blue50;
+  Color get surface2 {
+    final a = TabAccent.maybeOf(this);
+    if (a == null) return isDark ? AppColors.darkSurface2 : AppColors.blue50;
+    return isDark
+        ? Color.lerp(AppColors.darkSurface2, a, 0.10)!
+        : Color.lerp(Colors.white, a, 0.07)!;
+  }
+
+  /// Warna aksen tab yang sedang aktif (default: biru beranda).
+  Color get accent => TabAccent.maybeOf(this) ?? AppColors.blue500;
+
+  /// Latar lembut berwarna aksen (pengganti blue100).
+  Color get accentSoft {
+    final a = TabAccent.maybeOf(this);
+    if (a == null) return isDark ? AppColors.darkSurface2 : AppColors.blue100;
+    return isDark
+        ? Color.lerp(AppColors.darkSurface2, a, 0.22)!
+        : Color.lerp(Colors.white, a, 0.18)!;
+  }
+
+  /// Gradien tombol dengan warna aksen tab.
+  Gradient get accentGradient {
+    final a = TabAccent.maybeOf(this);
+    if (a == null) return AppColors.buttonGradient;
+    final h = HSLColor.fromColor(a);
+    final light = h.withLightness((h.lightness + 0.07).clamp(0.0, 1.0)).toColor();
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [light, a],
+    );
+  }
   /// Di dark mode, warna aksen dicerahin dikit biar kebaca di background kalem.
   Color tone(Color c) => isDark ? Color.lerp(c, Colors.white, 0.4)! : c;
+  Gradient dim(Gradient g) => g.forMode(isDark);
   Color get textColor => isDark ? AppColors.darkText : AppColors.lightText;
+}
+
+
+/// Membawa warna aksen sebuah tab ke semua widget di dalamnya.
+class TabAccent extends InheritedWidget {
+  final Color color;
+  const TabAccent({super.key, required this.color, required super.child});
+
+  static Color? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TabAccent>()?.color;
+
+  @override
+  bool updateShouldNotify(TabAccent old) => old.color != color;
+}
+
+/// Warna aksen untuk teks/ikon: digelapkan di mode terang, dicerahkan di gelap.
+Color accentInk(Color a, bool dark) {
+  final h = HSLColor.fromColor(a);
+  final l = dark ? (h.lightness < 0.72 ? 0.72 : h.lightness) : (h.lightness > 0.40 ? 0.40 : h.lightness);
+  return h.withLightness(l).toColor();
+}
+
+extension AccentTheme on ThemeData {
+  /// Salinan tema dengan warna utama diganti aksen tab.
+  ThemeData withAccent(Color accent) {
+    final dark = brightness == Brightness.dark;
+    final ink = accentInk(accent, dark);
+    final soft = dark
+        ? Color.lerp(AppColors.darkSurface2, accent, 0.22)!
+        : Color.lerp(Colors.white, accent, 0.18)!;
+    final field = dark
+        ? Color.lerp(AppColors.darkSurface2, accent, 0.10)!
+        : Color.lerp(Colors.white, accent, 0.07)!;
+    final cs = colorScheme.copyWith(
+      primary: ink,
+      onPrimary: dark ? AppColors.navy : Colors.white,
+      primaryContainer: soft,
+      secondaryContainer: soft,
+      onSecondaryContainer: ink,
+      surfaceContainerHigh: field,
+      surfaceContainerHighest: soft,
+    );
+    return copyWith(
+      colorScheme: cs,
+      inputDecorationTheme: inputDecorationTheme.copyWith(
+        fillColor: field,
+        focusedBorder: (inputDecorationTheme.focusedBorder as OutlineInputBorder)
+            .copyWith(borderSide: BorderSide(color: ink, width: 1.6)),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: (filledButtonTheme.style ?? const ButtonStyle())
+            .copyWith(backgroundColor: WidgetStatePropertyAll(accent)),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: (outlinedButtonTheme.style ?? const ButtonStyle())
+            .copyWith(foregroundColor: WidgetStatePropertyAll(ink)),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: (textButtonTheme.style ?? const ButtonStyle())
+            .copyWith(foregroundColor: WidgetStatePropertyAll(ink)),
+      ),
+    );
+  }
 }

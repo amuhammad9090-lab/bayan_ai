@@ -26,6 +26,10 @@ class NahwuProvider extends ChangeNotifier {
   String? _error;
   NahwuAnalysis? _analysis;
 
+  /// Naik tiap clear/analyze: hasil request lama dibuang kalau sudah basi.
+  int _gen = 0;
+  bool _disposed = false;
+
   /// Naik tiap hasil baru, dipakai buat me-restart animasi kartu.
   int _runId = 0;
 
@@ -61,6 +65,8 @@ class NahwuProvider extends ChangeNotifier {
   void randomExample() => setInput(examples[_rand.nextInt(examples.length)]);
 
   void clear() {
+    _gen++;
+    _loading = false;
     _input = '';
     _inputVersion++;
     _analysis = null;
@@ -71,27 +77,43 @@ class NahwuProvider extends ChangeNotifier {
   Future<void> analyze() async {
     final t = _input.trim();
     if (t.isEmpty || _loading) return;
+    final gen = ++_gen;
     _loading = true;
     _error = null;
     _analysis = null;
     notifyListeners();
     try {
       final a = await _ai.analyzeNahwu(t);
-      _analysis = a;
-      _runId++;
-      await _history.record(HistoryType.nahwu, t, a.toPlainText());
+      if (gen != _gen) return;
+      if (a.isEmpty) {
+        _error = 'Kalimat belum bisa dianalisis. '
+            'Pastikan teksnya berbahasa Arab (lebih baik berharakat), lalu coba lagi.';
+      } else {
+        _analysis = a;
+        _runId++;
+        await _history.record(HistoryType.nahwu, t, a.toPlainText());
+      }
     } on AiException catch (e) {
-      _error = e.message;
+      if (gen == _gen) _error = e.message;
     } catch (e) {
-      _error = 'Terjadi kesalahan: $e';
+      if (gen == _gen) _error = 'Terjadi kesalahan: $e';
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (gen == _gen) {
+        _loading = false;
+        notifyListeners();
+      }
     }
   }
 
   @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
+    _gen++;
     _sub.cancel();
     super.dispose();
   }

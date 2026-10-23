@@ -93,23 +93,33 @@ class HistoryTile extends StatelessWidget {
   }
 }
 
-Future<void> showHistorySheet(BuildContext context) {
+Future<void> showHistorySheet(BuildContext context, {String query = ''}) {
+  final q = query.trim().toLowerCase();
   return showAppSheet<void>(
     context,
-    title: 'Riwayat',
+    title: q.isEmpty ? 'Riwayat' : 'Riwayat: "${query.trim()}"',
     icon: AppIcons.history,
     builder: (ctx) => Consumer<HistoryProvider>(
       builder: (ctx, history, _) {
-        if (history.items.isEmpty) {
-          return const EmptyState(
+        final items = q.isEmpty
+            ? history.items
+            : history.items
+                .where((h) =>
+                    h.input.toLowerCase().contains(q) ||
+                    h.output.toLowerCase().contains(q))
+                .toList();
+        if (items.isEmpty) {
+          return EmptyState(
             icon: AppIcons.history,
-            title: 'Belum ada riwayat',
-            subtitle: 'Hasil OCR, pencarian ayat, dan analisis nahwu akan tersimpan di sini.',
+            title: q.isEmpty ? 'Belum ada riwayat' : 'Tidak ada yang cocok',
+            subtitle: q.isEmpty
+                ? 'Hasil OCR, pencarian ayat, dan analisis nahwu akan tersimpan di sini.'
+                : 'Coba kata kunci lain.',
           );
         }
         return Column(
           children: [
-            for (final h in history.items)
+            for (final h in items)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: HistoryTile(

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../shared/widgets/bound_text.dart';
 import '../../shared/widgets/common.dart';
+import '../shell/header_actions.dart';
 import '../settings/settings_provider.dart';
 import 'nahwu_provider.dart';
 
@@ -40,69 +42,102 @@ class NahwuPage extends StatelessWidget {
     final arabicSize = context.select<SettingsProvider, double>((s) => s.arabicSize);
     final analysis = nahwu.analysis;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return FeatureScroll(
+          actions: const HeaderActions(),
+          gradient: AppColors.cardPurple,
+          shadow: AppColors.purple,
+          asset: Art.homeNahwu,
+          fallback: AppIcons.nahwu,
+          title: "Bedah I'rab",
+          subtitle: "Analisis nahwu kata per kata: jenis kata, i'rab, dan tandanya.",
+          onRefresh: () async {
+            if (nahwu.input.trim().isNotEmpty) {
+              await nahwu.analyze();
+            } else {
+              await Future<void>.delayed(const Duration(milliseconds: 700));
+            }
+          },
       children: [
-        SectionHeader(
-          title: 'Kalimat Arab',
-          subtitle: 'Ketik, tempel, atau kirim dari tab OCR',
+
+        // ── Kartu kerja: input + alat bantu + aksi utama ──
+        SectionLabel(
+          'Kalimat Arab',
+          hint: 'Ketik, tempel, atau kirim dari OCR',
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
+              _MiniIconButton(
                 tooltip: 'Tempel',
-                onPressed: () => _paste(context),
-                icon: const Icon(AppIcons.paste, size: 19),
-                color: context.cs.primary,
+                icon: AppIcons.paste,
+                onTap: () => _paste(context),
               ),
-              IconButton(
+              const SizedBox(width: 6),
+              _MiniIconButton(
                 tooltip: 'Contoh acak',
-                onPressed: nahwu.randomExample,
-                icon: const Icon(AppIcons.shuffle, size: 19),
-                color: context.cs.primary,
+                icon: AppIcons.shuffle,
+                onTap: nahwu.randomExample,
               ),
             ],
           ),
         ),
-        BoundText(
-          source: nahwu,
-          read: () => nahwu.input,
-          version: () => nahwu.inputVersion,
-          onChanged: nahwu.onUserEdit,
-          builder: (context, controller) => ArabicField(
-            controller: controller,
-            hint: 'اكتب أو الصق الجملة العربية هنا…',
-            size: arabicSize,
+        AppCard(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BoundText(
+                source: nahwu,
+                read: () => nahwu.input,
+                version: () => nahwu.inputVersion,
+                onChanged: nahwu.onUserEdit,
+                builder: (context, controller) => ArabicField(
+                  controller: controller,
+                  hint: 'اكتب أو الصق الجملة العربية هنا…',
+                  size: arabicSize,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: GradientButton(
+                      label: nahwu.loading ? 'Menganalisis…' : 'Proses Nahwu',
+                      icon: AppIcons.sparkles,
+                      loading: nahwu.loading,
+                      onPressed: () => _analyze(context),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    height: 54,
+                    width: 54,
+                    child: OutlinedButton(
+                      onPressed: nahwu.clear,
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(54, 54),
+                      ),
+                      child: const Icon(AppIcons.trash, size: 19),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: GradientButton(
-                label: nahwu.loading ? 'Menganalisis…' : 'Proses Nahwu',
-                icon: AppIcons.sparkles,
-                loading: nahwu.loading,
-                onPressed: () => _analyze(context),
-              ),
-            ),
-            const SizedBox(width: 10),
-            SizedBox(
-              height: 52,
-              width: 52,
-              child: OutlinedButton(
-                onPressed: nahwu.clear,
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(52, 52),
-                ),
-                child: const Icon(AppIcons.trash, size: 19),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 22),
+        PageGap.section,
 
+        SectionLabel(
+          'Hasil analisis',
+          hint: analysis != null && analysis.isStructured ? '${analysis.words.length} kata' : null,
+          trailing: (analysis != null && analysis.isStructured)
+              ? ActionChipButton(
+                  icon: AppIcons.copy,
+                  label: 'Salin semua',
+                  onTap: () => copyText(context, analysis.toPlainText(), label: 'Hasil nahwu'),
+                )
+              : null,
+        ),
         if (nahwu.loading)
           const SkeletonList(
             count: 4,
@@ -123,21 +158,12 @@ class NahwuPage extends StatelessWidget {
         else if (!analysis.isStructured)
           AppCard(child: RichResult(text: analysis.raw, arabicSize: arabicSize))
         else ...[
-          SectionHeader(
-            title: 'Hasil analisis',
-            subtitle: '${analysis.words.length} kata',
-            trailing: ActionChipButton(
-              icon: AppIcons.copy,
-              label: 'Salin semua',
-              onTap: () => copyText(context, analysis.toPlainText(), label: 'Hasil nahwu'),
-            ),
-          ),
           if (analysis.jenisKalimat.isNotEmpty) ...[
             Align(
               alignment: Alignment.centerLeft,
               child: Pill(
                 label: analysis.jenisKalimat,
-                color: AppColors.blue600,
+                color: context.cs.primary,
                 icon: AppIcons.sparkles,
               ),
             ),
@@ -153,39 +179,34 @@ class NahwuPage extends StatelessWidget {
           if (analysis.ringkasan.isNotEmpty) ...[
             const SizedBox(height: 4),
             AppCard(
-              gradient: AppColors.heroGradient,
+              color: AppColors.purple.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(AppIcons.lightbulb, size: 16, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
+                      Icon(AppIcons.lightbulb, size: 16, color: context.tone(AppColors.purple)),
+                      const SizedBox(width: 8),
+                      const Text(
                         'Ringkasan struktur',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     analysis.ringkasan,
-                    style: const TextStyle(fontSize: 13, height: 1.6, color: Colors.white),
+                    style: const TextStyle(fontSize: 13, height: 1.6),
                   ),
                 ],
               ),
             ),
           ],
-          const SizedBox(height: 14),
-          const NoticeCard(
-            icon: AppIcons.info,
-            message: "I'rab dibuat oleh AI mengikuti kerangka 7 bab (Al-Kalam, Al-I'rab, Al-Af'al, Isim Marfu', "
-                "Isim Manshub, Isim Makhfudh, At-Tawabi'). Untuk pengajaran, tetap cek ulang dengan kitab rujukan.",
+          const SizedBox(height: 12),
+          const Footnote(
+            "I'rab dibuat oleh AI mengikuti kerangka 7 bab (Al-Kalam, Al-I'rab, Al-Af'al, Isim Marfu', "
+            "Isim Manshub, Isim Makhfudh, At-Tawabi'). Untuk pengajaran, tetap cek ulang dengan kitab rujukan.",
           ),
         ],
       ],
@@ -197,17 +218,17 @@ Color _jenisColor(String jenis) {
   final j = jenis.toLowerCase();
   if (j.contains('fi')) return AppColors.cyan;
   if (j.contains('huruf')) return AppColors.indigo;
-  return AppColors.blue600; // isim & lainnya
+  return AppColors.purple; // isim & lainnya
 }
 
 Color _babColor(String bab) {
   final b = bab.toLowerCase();
-  if (b.contains('marfu')) return AppColors.blue600;
+  if (b.contains('marfu')) return AppColors.purple;
   if (b.contains('manshub')) return AppColors.cyan;
   if (b.contains('makhfudh')) return AppColors.indigo;
   if (b.contains('tawabi')) return const Color(0xFF0D9488);
   if (b.contains('af')) return const Color(0xFF7C3AED);
-  return AppColors.blue500; // Al-Kalam, Al-I'rab
+  return AppColors.purple; // Al-Kalam, Al-I'rab
 }
 
 class _WordCard extends StatelessWidget {
@@ -238,7 +259,6 @@ class _WordCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: AppCard(
-          shadow: false,
           padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,6 +334,33 @@ class _WordCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniIconButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onTap;
+  const _MiniIconButton({required this.tooltip, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cs.primary;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: c.withValues(alpha: context.isDark ? 0.16 : 0.09),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, size: 17, color: c),
           ),
         ),
       ),

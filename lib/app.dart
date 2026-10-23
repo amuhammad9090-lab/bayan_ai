@@ -35,6 +35,27 @@ class BayanAiApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>.value(value: deps.settings),
         ChangeNotifierProvider<HistoryProvider>.value(value: deps.history),
         ChangeNotifierProvider<AuthProvider>.value(value: deps.auth),
+      ],
+      child: _UserScoped(deps: deps),
+    );
+  }
+}
+
+/// Provider fitur (OCR/Quran/Nahwu/Nav) dibuat ulang tiap ganti akun, jadi
+/// hasil & input user sebelumnya nggak kebawa, dan request yang masih
+/// jalan ikut dibatalkan (provider lama di-dispose).
+class _UserScoped extends StatelessWidget {
+  const _UserScoped({required this.deps});
+
+  final AppDeps deps;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = context.select<AuthProvider, String?>((a) => a.user?.uid);
+    final ai = deps.ai;
+    return MultiProvider(
+      key: ValueKey(uid ?? 'guest'),
+      providers: [
         ChangeNotifierProvider(create: (_) => NavProvider(deps.handoff)),
         ChangeNotifierProvider(create: (_) => OcrProvider(ai, deps.history)),
         ChangeNotifierProvider(
