@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../core/icons.dart';
 import '../../core/theme.dart';
 
 /// Potongan 0..1 dari timeline [t]: mulai di [start], panjang [length].
@@ -225,50 +224,23 @@ class _AiThinkingState extends State<AiThinking> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.surface2,
-        borderRadius: BorderRadius.circular(16),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.3),
+            end: Offset.zero,
+          ).animate(anim),
+          child: child,
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(AppIcons.sparkles, size: 18, color: context.cs.primary)
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scaleXY(
-                begin: 0.8,
-                end: 1.2,
-                duration: 700.ms,
-                curve: Curves.easeInOut,
-              )
-              .rotate(begin: -0.05, end: 0.05, duration: 700.ms),
-          const SizedBox(width: 10),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.4),
-                    end: Offset.zero,
-                  ).animate(anim),
-                  child: child,
-                ),
-              ),
-              layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.centerLeft,
-                children: [...previous, if (current != null) current],
-              ),
-              child: Text(
-                widget.messages[_i],
-                key: ValueKey(_i),
-                style: TextStyle(fontSize: 13, color: context.muted),
-              ),
-            ),
-          ),
-          BouncingDots(color: context.cs.primary, size: 5),
-        ],
+      child: Text(
+        widget.messages[_i],
+        key: ValueKey(_i),
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 14, color: context.muted),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/handoff.dart';
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
@@ -111,6 +112,7 @@ Future<void> showHistorySheet(BuildContext context, {String query = ''}) {
         if (items.isEmpty) {
           return EmptyState(
             icon: AppIcons.history,
+            art: q.isEmpty ? Art.stateEmpty : Art.stateSearch,
             title: q.isEmpty ? 'Belum ada riwayat' : 'Tidak ada yang cocok',
             subtitle: q.isEmpty
                 ? 'Hasil OCR, pencarian ayat, dan analisis nahwu akan tersimpan di sini.'

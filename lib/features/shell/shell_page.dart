@@ -17,25 +17,25 @@ class ShellPage extends StatelessWidget {
 
   static const _pages = <Widget>[
     HomePage(),
-    OcrPage(),
     QuranPage(),
     NahwuPage(),
+    OcrPage(),
     SettingsPage(),
   ];
 
   static const _navColors = <Color>[
     AppColors.blue500,
-    AppColors.ocr,
-    AppColors.quran,
-    AppColors.purple,
+    AppColors.featQuran,
+    AppColors.featNahwu,
+    AppColors.featOcr,
     AppColors.settings,
   ];
 
   static const _navItems = <(IconData, String)>[
     (AppIcons.home, 'Beranda'),
-    (AppIcons.ocr, 'OCR'),
     (AppIcons.quran, "Qur'an"),
     (AppIcons.nahwu, 'Nahwu'),
+    (AppIcons.ocr, 'OCR'),
     (AppIcons.settings, 'Setelan'),
   ];
 
@@ -90,7 +90,9 @@ class _FloatingNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = context.isDark;
-    final idle = dark ? AppColors.darkMuted : AppColors.blue300;
+    // Ikon yang tidak aktif ikut warna tab yang sedang dibuka (transisi halus).
+    final active = colors[index];
+    final idle = dark ? Color.lerp(active, Colors.white, 0.35)! : active;
 
     return SafeArea(
       top: false,
@@ -113,19 +115,24 @@ class _FloatingNav extends StatelessWidget {
                     ),
                   ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var k = 0; k < items.length; k++)
-                _NavItem(
-                  icon: items[k].$1,
-                  label: items[k].$2,
-                  selected: k == index,
-                  color: colors[k],
-                  idleColor: idle,
-                  onTap: () => onTap(k),
-                ),
-            ],
+          child: TweenAnimationBuilder<Color?>(
+            tween: ColorTween(end: idle),
+            duration: const Duration(milliseconds: 380),
+            curve: Curves.easeOut,
+            builder: (context, idleNow, _) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (var k = 0; k < items.length; k++)
+                  _NavItem(
+                    icon: items[k].$1,
+                    label: items[k].$2,
+                    selected: k == index,
+                    color: colors[k],
+                    idleColor: idleNow ?? idle,
+                    onTap: () => onTap(k),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

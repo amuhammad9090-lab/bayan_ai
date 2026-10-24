@@ -68,6 +68,16 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF6CC2FA), Color(0xFF3FA9F2)],
   );
+  // Header Beranda versi gelap: biru langit → royal → indigo, melebur ke
+  // latar navy alih-alih biru terang yang "nyetrum".
+  static const homeDark = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF3C9AE6), Color(0xFF2C6CCB), Color(0xFF283F8E)],
+  );
+  static Gradient homeHeader(bool dark) => dark ? homeDark : cardBlue;
+  // Warna Riwayat = warna Beranda (biru langit).
+  static const history = blue500;
   static const cardOcr = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -83,12 +93,20 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFF9EA1DE), Color(0xFF7B7FC6)],
   );
-  // Setelan: hijau segar (beda dari tosca Qur'an).
-  static const settings = Color(0xFF34C17C);
+  // Warna per fitur, mengikuti urutan tab: Qur'an, Nahwu, OCR.
+  static const featQuran = ocr; // biru royal
+  static const featNahwu = quran; // tosca
+  static const featOcr = purple; // ungu
+  static const gradQuran = cardOcr;
+  static const gradNahwu = cardQuran;
+  static const gradOcr = cardPurple;
+
+  // Setelan: abu-biru (slate), netral dan beda dari keempat tab lain.
+  static const settings = Color(0xFF6B7BA0);
   static const cardSettings = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF86E6A9), Color(0xFF34C17C)],
+    colors: [Color(0xFF9DABC9), Color(0xFF6B7BA0)],
   );
 }
 

@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           _ScopeTile(
             icon: AppIcons.quran,
-            color: AppColors.quran,
+            color: AppColors.featQuran,
             title: 'Ayat & Tafsir',
             subtitle: "Cari ayat berdasarkan topik atau nama surah",
             selected: _scope == _SearchScope.quran,
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 10),
           _ScopeTile(
             icon: AppIcons.nahwu,
-            color: AppColors.purple,
+            color: AppColors.featNahwu,
             title: 'Analisis Nahwu',
             subtitle: 'Tulis kalimat Arab, langsung dianalisis',
             selected: _scope == _SearchScope.nahwu,
@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 10),
           _ScopeTile(
             icon: AppIcons.history,
-            color: AppColors.green,
+            color: AppColors.history,
             title: 'Riwayat',
             subtitle: 'Saring hasil OCR, ayat, dan nahwu yang tersimpan',
             selected: _scope == _SearchScope.history,
@@ -147,20 +147,20 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: _TopicPill(
-                  icon: AppIcons.ocr,
-                  label: 'Pindai',
-                  color: AppColors.ocr,
+                  icon: AppIcons.quran,
+                  label: "Qur'an",
+                  color: AppColors.featQuran,
                   filled: true,
-                  onTap: () => nav.go(NavProvider.ocr),
+                  onTap: () => nav.go(NavProvider.quran),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _TopicPill(
-                  icon: AppIcons.quran,
-                  label: "Qur'an",
-                  color: AppColors.quran,
-                  onTap: () => nav.go(NavProvider.quran),
+                  icon: AppIcons.nahwu,
+                  label: 'Nahwu',
+                  color: AppColors.featNahwu,
+                  onTap: () => nav.go(NavProvider.nahwu),
                 ),
               ),
             ],
@@ -170,10 +170,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: _TopicPill(
-                  icon: AppIcons.nahwu,
-                  label: 'Nahwu',
-                  color: AppColors.purple,
-                  onTap: () => nav.go(NavProvider.nahwu),
+                  icon: AppIcons.ocr,
+                  label: 'Pindai',
+                  color: AppColors.featOcr,
+                  onTap: () => nav.go(NavProvider.ocr),
                 ),
               ),
               const SizedBox(width: 10),
@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                 child: _TopicPill(
                   icon: AppIcons.history,
                   label: 'Riwayat',
-                  color: AppColors.green,
+                  color: AppColors.history,
                   onTap: () => showHistorySheet(context),
                 ),
               ),
@@ -198,22 +198,8 @@ class _HomePageState extends State<HomePage> {
           clipBehavior: Clip.none,
           children: [
             _FeatureCard(
-              gradient: AppColors.cardOcr,
-              shadow: AppColors.ocr,
-              asset: Art.homeOcr,
-              fallback: AppIcons.ocr,
-              title: 'Pindai Mushaf',
-              subtitle: 'Foto halaman jadi teks Arab berharakat',
-              chips: [
-                (AppIcons.ocr, '${history.count(HistoryType.ocr)} hasil'),
-                (AppIcons.sparkles, 'Gemini'),
-              ],
-              onTap: () => nav.go(NavProvider.ocr),
-            ),
-            const SizedBox(width: 12),
-            _FeatureCard(
-              gradient: AppColors.cardQuran,
-              shadow: AppColors.quran,
+              gradient: AppColors.gradQuran,
+              shadow: AppColors.featQuran,
               asset: Art.homeQuran,
               fallback: AppIcons.quran,
               title: 'Ayat & Tafsir',
@@ -226,8 +212,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(width: 12),
             _FeatureCard(
-              gradient: AppColors.cardPurple,
-              shadow: AppColors.purple,
+              gradient: AppColors.gradNahwu,
+              shadow: AppColors.featNahwu,
               asset: Art.homeNahwu,
               fallback: AppIcons.nahwu,
               title: 'Analisis Nahwu',
@@ -237,6 +223,20 @@ class _HomePageState extends State<HomePage> {
                 (AppIcons.lightbulb, '7 bab'),
               ],
               onTap: () => nav.go(NavProvider.nahwu),
+            ),
+            const SizedBox(width: 12),
+            _FeatureCard(
+              gradient: AppColors.gradOcr,
+              shadow: AppColors.featOcr,
+              asset: Art.homeOcr,
+              fallback: AppIcons.ocr,
+              title: 'Pindai Mushaf',
+              subtitle: 'Foto halaman jadi teks Arab berharakat',
+              chips: [
+                (AppIcons.ocr, '${history.count(HistoryType.ocr)} hasil'),
+                (AppIcons.sparkles, 'Gemini'),
+              ],
+              onTap: () => nav.go(NavProvider.ocr),
             ),
           ],
         ),
@@ -263,6 +263,7 @@ class _HomePageState extends State<HomePage> {
           shadow: false,
           child: EmptyState(
             icon: AppIcons.sparkles,
+            art: Art.stateEmpty,
             title: 'Mulai dari pindai atau cari',
             subtitle: 'Aktivitas kamu akan tampil di sini.',
           ),
@@ -275,17 +276,7 @@ class _HomePageState extends State<HomePage> {
           )),
     ];
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: dark
-            ? null
-            : const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFE3F1FD), AppColors.lightBg],
-              ),
-      ),
-      child: CustomScrollView(
+    final scroll = CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           AppRefreshControl(
@@ -317,6 +308,54 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+        ],
+      );
+
+    if (!dark) {
+      return DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE3F1FD), AppColors.lightBg],
+          ),
+        ),
+        child: scroll,
+      );
+    }
+    // Gelap: cahaya lembut warna-warna fitur di latar supaya nggak flat.
+    return Stack(
+      children: [
+        const Positioned.fill(child: _AmbientGlow()),
+        scroll,
+      ],
+    );
+  }
+}
+
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow();
+
+  static Widget _glow(Alignment at, Color c, double a, double r) => Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: at,
+              radius: r,
+              colors: [c.withValues(alpha: a), c.withValues(alpha: 0)],
+            ),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          _glow(const Alignment(-1.1, -0.35), const Color(0xFF3A8EE6), 0.16, 0.9),
+          _glow(const Alignment(1.2, 0.15), AppColors.featNahwu, 0.09, 0.8),
+          _glow(const Alignment(-1.0, 1.0), AppColors.featOcr, 0.11, 0.9),
         ],
       ),
     );

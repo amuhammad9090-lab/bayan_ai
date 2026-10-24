@@ -42,8 +42,8 @@ class QuranPage extends StatelessWidget {
 
     return FeatureScroll(
           actions: const HeaderActions(),
-          gradient: AppColors.cardQuran,
-          shadow: AppColors.quran,
+          gradient: AppColors.gradQuran,
+          shadow: AppColors.featQuran,
           asset: Art.homeQuran,
           fallback: AppIcons.quran,
           title: "Cari Ayat & Tafsir",
@@ -128,17 +128,13 @@ class QuranPage extends StatelessWidget {
           trailing: (result != null && result.isStructured)
               ? Pill(
                   label: '${result.ayat.length} ayat',
-                  color: AppColors.quran,
+                  color: AppColors.featQuran,
                   icon: AppIcons.bookMarked,
                 )
               : null,
         ),
         if (quran.loading)
-          const SkeletonList(
-            count: 3,
-            height: 140,
-            thinking: ['Mencari ayat yang relevan…', 'Membuka rujukan tafsir…', 'Menyusun ringkasan…'],
-          )
+          const ThinkingView(messages: ['Mencari ayat yang relevan…', 'Membuka rujukan tafsir…', 'Menyusun ringkasan…'])
         else if (quran.error != null)
           ErrorCard(message: quran.error!)
         else if (result == null)
@@ -146,6 +142,7 @@ class QuranPage extends StatelessWidget {
             shadow: false,
             child: EmptyState(
               icon: AppIcons.bookMarked,
+              art: Art.stateSearch,
               title: 'Cari ayat & tafsir',
               subtitle: 'Tulis topik seperti "ayat tentang sabar", atau nama surah, '
                   'lalu AI akan menampilkan ayat, terjemah, dan penjelasan dengan pendekatan Tafsir al-Munir dan al-Mishbah.',
@@ -154,12 +151,12 @@ class QuranPage extends StatelessWidget {
         else ...[
           if (result.ringkasan.isNotEmpty) ...[
             AppCard(
-              color: AppColors.quran.withValues(alpha: context.isDark ? 0.2 : 0.12),
+              color: AppColors.featQuran.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(AppIcons.sparkles, size: 18, color: context.tone(AppColors.quran)),
+                  Icon(AppIcons.sparkles, size: 18, color: context.tone(AppColors.featQuran)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import 'animations.dart';
@@ -41,15 +42,78 @@ class Pill extends StatelessWidget {
   }
 }
 
+/// Ilustrasi karakter yang mengambang pelan (naik-turun + miring tipis),
+/// dengan bayangan di bawahnya yang ikut membesar-mengecil.
+class StateArt extends StatelessWidget {
+  final String asset;
+  final IconData fallback;
+  final double size;
+  const StateArt({
+    super.key,
+    required this.asset,
+    this.fallback = AppIcons.sparkles,
+    this.size = 140,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size + 8,
+      child: LoopBuilder(
+        duration: const Duration(milliseconds: 2600),
+        reverse: true,
+        builder: (context, t) {
+          final e = Curves.easeInOut.transform(t);
+          return Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Positioned(
+                bottom: 0,
+                child: Container(
+                  width: size * (0.46 - 0.08 * e),
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: context.accent.withValues(alpha: 0.16 - 0.06 * e),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                child: Transform.translate(
+                  offset: Offset(0, 8 - 14 * e),
+                  child: Transform.rotate(
+                    angle: (e - 0.5) * 0.035,
+                    child: SizedBox(
+                      width: size,
+                      height: size,
+                      child: ArtImage(asset: asset, fallbackIcon: fallback, fallbackColor: context.accent, fallbackSize: 48),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+
+  /// Kalau diisi, ilustrasi karakter dipakai menggantikan ikon bulat.
+  final String? art;
   const EmptyState({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.art,
   });
 
   @override
@@ -59,8 +123,11 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconChip(icon: icon, size: 56),
-          const SizedBox(height: 14),
+          if (art != null)
+            StateArt(asset: art!, fallback: icon)
+          else
+            IconChip(icon: icon, size: 56),
+          SizedBox(height: art != null ? 6 : 14),
           Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(
@@ -148,62 +215,22 @@ class ActionChipButton extends StatelessWidget {
 
 // ───────────────────────── Skeleton loading ─────────────────────────
 
-class SkeletonList extends StatefulWidget {
-  final int count;
-  final double height;
-
-  /// Pesan bergantian "AI lagi mikir" di atas skeleton (opsional).
-  final List<String>? thinking;
-  const SkeletonList({super.key, this.count = 3, this.height = 96, this.thinking});
-
-  @override
-  State<SkeletonList> createState() => _SkeletonListState();
-}
-
-class _SkeletonListState extends State<SkeletonList> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
+/// Tampilan "AI sedang berpikir": ilustrasi + pesan bergantian tanpa kotak.
+class ThinkingView extends StatelessWidget {
+  final List<String> messages;
+  const ThinkingView({super.key, required this.messages});
 
   @override
   Widget build(BuildContext context) {
-    final a = context.isDark ? AppColors.darkSurface : context.surface2;
-    final b = context.accentSoft;
-    final thinking = widget.thinking;
-    return Column(
-      children: [
-        if (thinking != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: AiThinking(messages: thinking),
-          ),
-        AnimatedBuilder(
-          animation: _c,
-          builder: (context, _) {
-            final color = Color.lerp(a, b, _c.value)!;
-            return Column(
-              children: List.generate(
-                widget.count,
-                (i) => Container(
-                  height: widget.height,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          const StateArt(asset: Art.stateThink, size: 180),
+          const SizedBox(height: 12),
+          AiThinking(messages: messages),
+        ],
+      ),
     );
   }
 }

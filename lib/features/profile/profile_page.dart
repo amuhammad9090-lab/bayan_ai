@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/art.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
@@ -126,19 +127,8 @@ class ProfilePage extends StatelessWidget {
                       Expanded(
                         child: StatCard(
                           index: 0,
-                          icon: AppIcons.ocr,
-                          color: AppColors.ocr,
-                          value: history.count(HistoryType.ocr),
-                          label: 'Pindai OCR',
-                          onTap: () => showHistorySheet(context),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: StatCard(
-                          index: 1,
                           icon: AppIcons.quran,
-                          color: AppColors.quran,
+                          color: AppColors.featQuran,
                           value: history.count(HistoryType.quran),
                           label: "Cari Qur'an",
                           onTap: () => showHistorySheet(context),
@@ -147,11 +137,22 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: StatCard(
-                          index: 2,
+                          index: 1,
                           icon: AppIcons.nahwu,
-                          color: AppColors.purple,
+                          color: AppColors.featNahwu,
                           value: history.count(HistoryType.nahwu),
                           label: 'Analisis',
+                          onTap: () => showHistorySheet(context),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: StatCard(
+                          index: 2,
+                          icon: AppIcons.ocr,
+                          color: AppColors.featOcr,
+                          value: history.count(HistoryType.ocr),
+                          label: 'Pindai OCR',
                           onTap: () => showHistorySheet(context),
                         ),
                       ),
@@ -175,6 +176,7 @@ class ProfilePage extends StatelessWidget {
                       shadow: false,
                       child: EmptyState(
                         icon: AppIcons.sparkles,
+                        art: Art.stateEmpty,
                         title: 'Belum ada aktivitas',
                         subtitle: 'Hasil pindai, pencarian ayat, dan analisis nahwu akan muncul di sini.',
                       ),

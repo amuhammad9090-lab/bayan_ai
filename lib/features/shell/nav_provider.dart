@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/handoff.dart';
 
-/// Index tab: 0 Beranda, 1 OCR, 2 Al-Qur'an, 3 Nahwu, 4 Setelan.
+/// Index tab: 0 Beranda, 1 Al-Qur'an, 2 Nahwu, 3 OCR, 4 Setelan.
 /// Otomatis pindah tab kalau ada handoff ke fitur tertentu.
 class NavProvider extends ChangeNotifier {
   NavProvider(HandoffService handoff) {
@@ -21,9 +21,9 @@ class NavProvider extends ChangeNotifier {
   }
 
   static const home = 0;
-  static const ocr = 1;
-  static const quran = 2;
-  static const nahwu = 3;
+  static const quran = 1;
+  static const nahwu = 2;
+  static const ocr = 3;
   static const settings = 4;
 
   late final StreamSubscription<HandoffMessage> _sub;

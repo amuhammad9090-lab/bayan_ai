@@ -41,17 +41,17 @@ class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
     final radius = BorderRadius.vertical(bottom: Radius.circular(30 - 8 * t));
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.cardBlue.forMode(dark),
+        gradient: AppColors.homeHeader(dark),
         borderRadius: radius,
-        boxShadow: dark
-            ? null
-            : [
-                BoxShadow(
-                  color: AppColors.blue500.withValues(alpha: 0.2 + 0.1 * t),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: dark
+                ? const Color(0xFF2C6CCB).withValues(alpha: 0.22 + 0.08 * t)
+                : AppColors.blue500.withValues(alpha: 0.2 + 0.1 * t),
+            blurRadius: dark ? 28 : 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: radius,

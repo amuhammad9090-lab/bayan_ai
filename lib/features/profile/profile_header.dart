@@ -51,7 +51,7 @@ class ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
     final t = (shrinkOffset / range).clamp(0.0, 1.0);
     final e = Curves.easeOutCubic.transform(t);
     final width = MediaQuery.of(context).size.width;
-    final gradient = AppColors.cardBlue.forMode(dark);
+    final gradient = AppColors.homeHeader(dark);
     final radius = Radius.circular(32 - 10 * t);
 
     final avatarSize = 98.0 - 62.0 * e; // 98 -> 36

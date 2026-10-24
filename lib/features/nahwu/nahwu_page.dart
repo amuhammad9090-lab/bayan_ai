@@ -44,8 +44,8 @@ class NahwuPage extends StatelessWidget {
 
     return FeatureScroll(
           actions: const HeaderActions(),
-          gradient: AppColors.cardPurple,
-          shadow: AppColors.purple,
+          gradient: AppColors.gradNahwu,
+          shadow: AppColors.featNahwu,
           asset: Art.homeNahwu,
           fallback: AppIcons.nahwu,
           title: 'Bedah Nahwu',
@@ -139,11 +139,7 @@ class NahwuPage extends StatelessWidget {
               : null,
         ),
         if (nahwu.loading)
-          const SkeletonList(
-            count: 4,
-            height: 92,
-            thinking: ['Memecah kalimat…', 'Menentukan jenis kata…', 'Menyusun analisis…'],
-          )
+          const ThinkingView(messages: ['Memecah kalimat…', 'Menentukan jenis kata…', 'Menyusun analisis…'])
         else if (nahwu.error != null)
           ErrorCard(message: nahwu.error!)
         else if (analysis == null)
@@ -151,6 +147,7 @@ class NahwuPage extends StatelessWidget {
             shadow: false,
             child: EmptyState(
               icon: AppIcons.nahwu,
+              art: Art.stateThink,
               title: 'Bedah nahwu kata per kata',
               subtitle: 'Masukkan kalimat Arab (lebih baik berharakat) lalu tekan Proses Nahwu.',
             ),
@@ -179,14 +176,14 @@ class NahwuPage extends StatelessWidget {
           if (analysis.ringkasan.isNotEmpty) ...[
             const SizedBox(height: 4),
             AppCard(
-              color: AppColors.purple.withValues(alpha: context.isDark ? 0.2 : 0.12),
+              color: AppColors.featNahwu.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(AppIcons.lightbulb, size: 16, color: context.tone(AppColors.purple)),
+                      Icon(AppIcons.lightbulb, size: 16, color: context.tone(AppColors.featNahwu)),
                       const SizedBox(width: 8),
                       const Text(
                         'Ringkasan struktur',
@@ -216,19 +213,19 @@ class NahwuPage extends StatelessWidget {
 
 Color _jenisColor(String jenis) {
   final j = jenis.toLowerCase();
-  if (j.contains('fi')) return AppColors.cyan;
+  if (j.contains('fi')) return AppColors.featOcr;
   if (j.contains('huruf')) return AppColors.indigo;
-  return AppColors.purple; // isim & lainnya
+  return AppColors.featNahwu; // isim & lainnya
 }
 
 Color _babColor(String bab) {
   final b = bab.toLowerCase();
-  if (b.contains('marfu')) return AppColors.purple;
-  if (b.contains('manshub')) return AppColors.cyan;
+  if (b.contains('marfu')) return AppColors.featNahwu;
+  if (b.contains('manshub')) return AppColors.featQuran;
   if (b.contains('makhfudh')) return AppColors.indigo;
   if (b.contains('tawabi')) return const Color(0xFF0D9488);
   if (b.contains('af')) return const Color(0xFF7C3AED);
-  return AppColors.purple; // Al-Kalam, Al-I'rab
+  return AppColors.featNahwu; // Al-Kalam, Al-I'rab
 }
 
 class _WordCard extends StatelessWidget {

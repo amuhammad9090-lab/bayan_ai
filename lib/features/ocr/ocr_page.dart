@@ -55,8 +55,8 @@ class _OcrPageState extends State<OcrPage> {
 
     return FeatureScroll(
           actions: const HeaderActions(),
-          gradient: AppColors.cardOcr,
-          shadow: AppColors.ocr,
+          gradient: AppColors.gradOcr,
+          shadow: AppColors.featOcr,
           asset: Art.homeOcr,
           fallback: AppIcons.ocr,
           title: 'Pindai Mushaf',
@@ -172,11 +172,7 @@ class _OcrPageState extends State<OcrPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (ocr.loading)
-                const SkeletonList(
-                  count: 1,
-                  height: 150,
-                  thinking: ['Membaca tulisan Arab…', 'Mengenali harakat…', 'Merapikan hasil…'],
-                )
+                const ThinkingView(messages: ['Membaca tulisan Arab…', 'Mengenali harakat…', 'Merapikan hasil…'])
               else
                 BoundText(
                   source: ocr,

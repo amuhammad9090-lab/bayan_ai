@@ -13,6 +13,11 @@ class Art {
   static const homeQuran = 'assets/images/home_quran.png';
   static const homeNahwu = 'assets/images/home_nahwu.png';
   static const homeBanner = 'assets/images/home_banner.png';
+
+  // Karakter untuk keadaan kosong / mencari / AI sedang berpikir.
+  static const stateThink = 'assets/images/state_think.png';
+  static const stateEmpty = 'assets/images/state_empty.png';
+  static const stateSearch = 'assets/images/state_search.png';
 }
 
 class ArtImage extends StatelessWidget {

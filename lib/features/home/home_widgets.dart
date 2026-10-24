@@ -11,7 +11,7 @@ class _KeyBanner extends StatelessWidget {
     return Container(
       height: 120,
       decoration: BoxDecoration(
-        gradient: AppColors.cardBlue.forMode(context.isDark),
+        gradient: AppColors.homeHeader(context.isDark),
         borderRadius: BorderRadius.circular(22),
       ),
       padding: const EdgeInsets.fromLTRB(16, 14, 6, 14),
@@ -87,7 +87,13 @@ class _TopicPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = context.isDark;
-    final bg = filled ? color : context.cs.surface;
+    // Gelap: pil diberi rona warnanya sendiri (bukan abu seragam) biar hidup.
+    final surface = context.cs.surface;
+    final bg = filled
+        ? color
+        : dark
+            ? Color.alphaBlend(color.withValues(alpha: 0.13), surface)
+            : surface;
     final fg = filled ? Colors.white : context.textColor;
 
     return Material(
@@ -102,7 +108,9 @@ class _TopicPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
-            border: (!filled && dark) ? Border.all(color: context.border) : null,
+            border: (!filled && dark)
+                ? Border.all(color: Color.alphaBlend(color.withValues(alpha: 0.32), surface))
+                : null,
             boxShadow: (!filled && !dark)
                 ? [
                     BoxShadow(
@@ -307,11 +315,11 @@ class _RecentCard extends StatelessWidget {
   Gradient get _gradient {
     switch (item.type) {
       case HistoryType.ocr:
-        return AppColors.cardOcr;
+        return AppColors.gradOcr;
       case HistoryType.quran:
-        return AppColors.cardQuran;
+        return AppColors.gradQuran;
       case HistoryType.nahwu:
-        return AppColors.cardPurple;
+        return AppColors.gradNahwu;
     }
   }
 
