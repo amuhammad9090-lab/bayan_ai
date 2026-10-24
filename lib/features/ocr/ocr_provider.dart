@@ -1,15 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/ai_repository.dart';
+import '../../core/handoff.dart';
 import '../../core/history_recorder.dart';
 import '../../models/models.dart';
 
 class OcrProvider extends ChangeNotifier {
-  OcrProvider(this._ai, this._history);
+  OcrProvider(this._ai, this._history, HandoffService handoff) {
+    _sub = handoff.stream.listen((m) {
+      if (m.target == HandoffTarget.ocr) showText(m.text);
+    });
+  }
 
   final AiRepository _ai;
   final HistoryRecorder _history;
+  late final StreamSubscription<HandoffMessage> _sub;
 
   XFile? _image;
   Uint8List? _bytes;
@@ -37,6 +45,17 @@ class OcrProvider extends ChangeNotifier {
     _bytes = bytes;
     _setText('');
     _error = null;
+    notifyListeners();
+  }
+
+  /// Tampilkan teks hasil OCR lama (dari riwayat) tanpa gambar.
+  void showText(String t) {
+    _gen++;
+    _loading = false;
+    _image = null;
+    _bytes = null;
+    _error = null;
+    _setText(t);
     notifyListeners();
   }
 
@@ -96,6 +115,7 @@ class OcrProvider extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _gen++;
+    _sub.cancel();
     super.dispose();
   }
 

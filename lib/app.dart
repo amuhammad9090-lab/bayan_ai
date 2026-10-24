@@ -9,6 +9,7 @@ import 'core/handoff.dart';
 import 'core/storage.dart';
 import 'core/theme.dart';
 import 'features/auth/auth_provider.dart';
+import 'features/backup/backup_provider.dart';
 import 'features/gate/app_gate.dart';
 import 'features/history/history_provider.dart';
 import 'features/nahwu/nahwu_provider.dart';
@@ -56,7 +57,11 @@ class _UserScoped extends StatelessWidget {
       key: ValueKey(uid ?? 'guest'),
       providers: [
         ChangeNotifierProvider(create: (_) => NavProvider(deps.handoff)),
-        ChangeNotifierProvider(create: (_) => OcrProvider(ai, deps.history)),
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (_) => BackupProvider(uid: uid, store: deps.store, history: deps.history),
+        ),
+        ChangeNotifierProvider(create: (_) => OcrProvider(ai, deps.history, deps.handoff)),
         ChangeNotifierProvider(
           create: (_) => QuranProvider(ai, deps.quranText, deps.history, deps.handoff),
         ),

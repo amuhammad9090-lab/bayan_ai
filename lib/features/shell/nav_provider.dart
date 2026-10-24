@@ -16,6 +16,9 @@ class NavProvider extends ChangeNotifier {
         case HandoffTarget.quran:
           go(quran);
           break;
+        case HandoffTarget.ocr:
+          go(ocr);
+          break;
       }
     });
   }

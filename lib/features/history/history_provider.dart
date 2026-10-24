@@ -42,6 +42,32 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
     }
   }
 
+  /// Pemilik riwayat yang sedang dimuat (null = tamu).
+  String? get ownerUid => _uid;
+
+  static String _dedupeKey(HistoryItem e) =>
+      '${e.type.name}|${e.input.isNotEmpty ? e.input : e.output}';
+
+  /// Gabungkan riwayat dari cadangan cloud (tidak menghapus yang lokal).
+  /// Mengembalikan jumlah entri baru yang masuk.
+  Future<int> merge(List<HistoryItem> incoming) async {
+    final before = {for (final e in _items) e.id};
+    final byId = {for (final e in _items) e.id: e};
+    for (final e in incoming) {
+      byId.putIfAbsent(e.id, () => e);
+    }
+    final all = byId.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final seen = <String>{};
+    var merged = all.where((e) => seen.add(_dedupeKey(e))).toList();
+    if (merged.length > _max) merged = merged.sublist(0, _max);
+    final added = merged.where((e) => !before.contains(e.id)).length;
+    if (added == 0) return 0;
+    _items = merged;
+    notifyListeners();
+    await _persist();
+    return added;
+  }
+
   List<HistoryItem> get items => List.unmodifiable(_items);
   List<HistoryItem> get recent => _items.take(4).toList();
   int count(HistoryType t) => _items.where((e) => e.type == t).length;

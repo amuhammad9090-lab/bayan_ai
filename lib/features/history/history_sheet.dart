@@ -42,7 +42,8 @@ void reuseHistory(BuildContext context, HistoryItem h) {
   final handoff = context.read<HandoffService>();
   switch (h.type) {
     case HistoryType.ocr:
-      handoff.send(HandoffTarget.nahwu, h.output);
+      // Buka lagi di tab OCR (teks hasil, tanpa gambar) supaya bisa disalin/diedit.
+      handoff.send(HandoffTarget.ocr, h.output);
       break;
     case HistoryType.nahwu:
       handoff.send(HandoffTarget.nahwu, h.input);

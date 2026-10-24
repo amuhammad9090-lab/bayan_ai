@@ -175,7 +175,8 @@ class NahwuPage extends StatelessWidget {
             ),
           if (analysis.ringkasan.isNotEmpty) ...[
             const SizedBox(height: 4),
-            AppCard(
+            SelectionArea(
+              child: AppCard(
               color: AppColors.featNahwu.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Column(
@@ -198,7 +199,7 @@ class NahwuPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            )),
           ],
           const SizedBox(height: 12),
           const Footnote(
@@ -255,7 +256,9 @@ class _WordCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10),
-        child: AppCard(
+        // Tahan teks (kata, i'rab, makna) untuk memilih & menyalin sebagian.
+        child: SelectionArea(
+          child: AppCard(
           padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,6 +335,7 @@ class _WordCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

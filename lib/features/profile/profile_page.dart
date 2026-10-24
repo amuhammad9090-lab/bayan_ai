@@ -287,16 +287,9 @@ class ProfilePage extends StatelessWidget {
                     const Footnote('Kamu sedang dalam mode tamu. Hubungkan Firebase untuk memiliki akun dan profil.')
                   else ...[
                     LogoutButton(onTap: () => confirmLogout(context)),
-                    const SizedBox(height: 14),
-                    Center(
-                      child: TextButton.icon(
-                        onPressed: auth.busy ? null : () => showDeleteAccountSheet(context),
-                        style: TextButton.styleFrom(
-                          foregroundColor: context.chipFg(AppColors.danger),
-                        ),
-                        icon: const Icon(AppIcons.userX, size: 16),
-                        label: const Text('Hapus akun', style: TextStyle(fontSize: 13)),
-                      ),
+                    const SizedBox(height: 10),
+                    DeleteAccountButton(
+                      onTap: auth.busy ? null : () => showDeleteAccountSheet(context),
                     ),
                   ],
                 ]

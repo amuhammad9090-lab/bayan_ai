@@ -1,9 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Tiap user hanya boleh baca/tulis dokumennya sendiri.
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Profil: tiap user hanya boleh baca/tulis dokumennya sendiri.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isOwner(uid);
+
+      // Cadangan riwayat: SATU dokumen `backup/history` per user.
+      match /backup/{doc} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && doc == 'history'
+          && request.resource.data.items is list
+          && request.resource.data.items.size() <= 100;
+      }
     }
   }
 }

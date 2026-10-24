@@ -46,7 +46,7 @@ class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
         boxShadow: [
           BoxShadow(
             color: dark
-                ? const Color(0xFF2C6CCB).withValues(alpha: 0.22 + 0.08 * t)
+                ? AppColors.homeDarkAccent.withValues(alpha: 0.22 + 0.08 * t)
                 : AppColors.blue500.withValues(alpha: 0.2 + 0.1 * t),
             blurRadius: dark ? 28 : 18,
             offset: const Offset(0, 8),

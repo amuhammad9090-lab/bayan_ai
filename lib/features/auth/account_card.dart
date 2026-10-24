@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/common.dart';
+import '../backup/backup_provider.dart';
 import '../shell/nav_provider.dart';
 import '../profile/profile_page.dart';
 import 'auth_provider.dart';
@@ -13,6 +14,7 @@ import 'user_avatar.dart';
 Future<void> confirmLogout(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     final nav = context.read<NavProvider>();
+    final backup = context.read<BackupProvider>();
     final navigator = Navigator.of(context);
     final guest = auth.status == AuthStatus.guest;
 
@@ -45,6 +47,8 @@ Future<void> confirmLogout(BuildContext context) async {
       );
       if (ok != true) return;
     }
+    // Kirim riwayat yang belum dicadangkan, selagi masih login.
+    await backup.flushBeforeSignOut();
     // Tutup halaman-halaman yang menumpuk (mis. Profil) sebelum sesi berakhir.
     navigator.popUntil((r) => r.isFirst);
     await auth.signOut();

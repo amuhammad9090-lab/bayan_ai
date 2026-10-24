@@ -156,7 +156,9 @@ class QuranPage extends StatelessWidget {
           )
         else ...[
           if (result.ringkasan.isNotEmpty) ...[
-            AppCard(
+            // Tahan teks untuk memilih & menyalin sebagian.
+            SelectionArea(
+              child: AppCard(
               color: AppColors.featQuran.withValues(alpha: context.isDark ? 0.2 : 0.12),
               shadow: false,
               child: Row(
@@ -172,7 +174,7 @@ class QuranPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+            )).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
             PageGap.inner,
           ],
           if (result.isStructured)
@@ -213,7 +215,9 @@ class _AyatCardState extends State<_AyatCard> {
   @override
   Widget build(BuildContext context) {
     final a = widget.ayat;
-    return AppCard(
+    // SelectionArea: tahan teks (ayat, terjemah, tafsir) untuk memilih & menyalin sebagian.
+    return SelectionArea(
+      child: AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -247,7 +251,7 @@ class _AyatCardState extends State<_AyatCard> {
           ),
           if (a.arab.isNotEmpty) ...[
             const SizedBox(height: 8),
-            ArabicText(a.arab, size: widget.arabicSize),
+            ArabicText(a.arab, size: widget.arabicSize, selectable: false),
           ],
           if (a.terjemah.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -264,10 +268,10 @@ class _AyatCardState extends State<_AyatCard> {
           if (a.hasTafsir) ...[
             const SizedBox(height: 12),
             Builder(builder: (context) {
-              final sections = <(String, String)>[
+              final sections = <(String, List<TafsirSection>)>[
                 if (a.munir.isNotEmpty) ('Al-Munir', a.munir),
                 if (a.mishbah.isNotEmpty) ('Al-Mishbah', a.mishbah),
-                if (a.tafsir.isNotEmpty) ('Tafsir ringkas', a.tafsir),
+                if (a.tafsir.isNotEmpty) ('Tafsir ringkas', [TafsirSection('Ringkasan', text: a.tafsir)]),
               ];
               final open = (_open != null && _open! < sections.length) ? _open : null;
               return Column(
@@ -290,38 +294,146 @@ class _AyatCardState extends State<_AyatCard> {
                     alignment: Alignment.topCenter,
                     child: open == null
                         ? const SizedBox(width: double.infinity)
-                        : Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(top: 10),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: context.surface2,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SelectableText(
-                                  sections[open].$2,
-                                  style: const TextStyle(fontSize: 13, height: 1.6),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Ringkasan AI dengan pendekatan tafsir ini, bukan kutipan kitab.',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontStyle: FontStyle.italic,
-                                    color: context.muted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        : _TafsirPanel(sections: sections[open].$2),
                   ),
                 ],
               );
             }),
           ],
+          if (a.terkait.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Ayat terkait',
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: context.muted),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final t in a.terkait)
+                  ActionChipButton(
+                    icon: AppIcons.bookMarked,
+                    label: t,
+                    onTap: () {
+                      final q = context.read<QuranProvider>();
+                      q.setQuery('QS. $t');
+                      q.search();
+                    },
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ));
+  }
+}
+
+/// Isi tafsir per bagian: judul kecil berwarna + paragraf / poin / daftar kata.
+class _TafsirPanel extends StatelessWidget {
+  final List<TafsirSection> sections;
+  const _TafsirPanel({required this.sections});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.cs.primary;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: context.surface2,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < sections.length; i++) ...[
+            if (i > 0) const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 14,
+                  decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    sections[i].title,
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: accent),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (sections[i].text.isNotEmpty)
+              Text(
+                sections[i].text,
+                style: const TextStyle(fontSize: 13, height: 1.65),
+              ),
+            for (final (kata, arti) in sections[i].words)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: context.chipBg(accent),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text(
+                          kata,
+                          style: TextStyle(
+                            fontFamily: 'LPMQ',
+                            fontSize: 18,
+                            height: 1.7,
+                            color: context.textColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(arti, style: const TextStyle(fontSize: 12.5, height: 1.5)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            for (final p in sections[i].points)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 7, right: 8),
+                      child: Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(p, style: const TextStyle(fontSize: 13, height: 1.55)),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: 12),
+          Text(
+            'Ringkasan AI dengan pendekatan tafsir ini, bukan kutipan kitab.',
+            style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: context.muted),
+          ),
         ],
       ),
     );

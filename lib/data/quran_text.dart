@@ -68,9 +68,28 @@ class QuranText {
         nomor: single ? '${ref.surah}:${ref.from}' : '${ref.surah}:${ref.from}-$to',
         arab: arab.toString().trim(),
         terjemah: terjemah.toString().trim(),
+        terkait: _related(data, a.terkait, ref),
       ));
     }
     return QuranSearchResult(ringkasan: r.ringkasan, ayat: out, raw: r.raw, verified: true);
+  }
+
+  /// Ayat terkait dari AI: buang yang tidak valid / sama dengan ayat utama,
+  /// lalu beri nama surah resmi, mis. "Al-Baqarah 2:153".
+  static List<String> _related(List<_Surah> data, List<String> refs, AyatRef self) {
+    final out = <String>[];
+    for (final r in refs) {
+      final x = AyatRef.tryParse(r);
+      if (x == null || x.surah < 1 || x.surah > data.length) continue;
+      final s = data[x.surah - 1];
+      if (x.from < 1 || x.from > s.text.length) continue;
+      if (x.surah == self.surah && x.from >= self.from && x.from <= self.to) continue;
+      final to = math.min(x.to, s.text.length);
+      final label = '${s.latin} ${x.surah}:${x.from}${to > x.from ? '-$to' : ''}';
+      if (!out.contains(label)) out.add(label);
+      if (out.length == 3) break;
+    }
+    return out;
   }
 
   static List<_Surah> _parse(String s) => (jsonDecode(s) as List)

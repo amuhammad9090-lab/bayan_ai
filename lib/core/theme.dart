@@ -72,8 +72,12 @@ class AppColors {
   static const homeDark = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF3C9AE6), Color(0xFF2C6CCB), Color(0xFF283F8E)],
+    colors: [Color(0xFF3C9AE6), homeDarkAccent, Color(0xFF283F8E)],
   );
+
+  /// Warna Beranda di dark mode (pil navbar/sidebar), diambil dari tengah
+  /// gradien header gelap supaya banner & navbar serasi.
+  static const homeDarkAccent = Color(0xFF2C6CCB);
   static Gradient homeHeader(bool dark) => dark ? homeDark : cardBlue;
   // Warna Riwayat = warna Beranda (biru langit).
   static const history = blue500;

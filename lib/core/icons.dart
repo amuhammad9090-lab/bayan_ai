@@ -56,6 +56,8 @@ class AppIcons {
   static const logOut = LucideIcons.logOut;
   static const userX = LucideIcons.userX;
   static const cloud = LucideIcons.cloud;
+  static const cloudUpload = LucideIcons.cloudUpload;
+  static const cloudDownload = LucideIcons.cloudDownload;
   static const pencil = LucideIcons.pencil;
   static const back = LucideIcons.chevronLeft;
   static const calendar = LucideIcons.calendarDays;

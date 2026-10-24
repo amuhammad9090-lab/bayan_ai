@@ -64,15 +64,38 @@ Carikan maksimal 3 ayat Al-Qur'an yang paling relevan (atau ayat yang disebutkan
 Untuk satu surah pendek atau satu kesatuan makna, boleh berupa rentang ayat (maksimal 10 ayat).
 PENTING: JANGAN menulis teks Arab ayat maupun terjemahnya. Aplikasi mengambil teks dan
 terjemah resmi dari mushaf Kemenag berdasarkan nomor, jadi pastikan nomor surah dan ayat benar.
+
+Tafsirkan SECARA MENDALAM, per bagian, mengikuti metode masing-masing kitab:
+- Tafsir al-Munir: kosakata penting (3-6 kata, salin PERSIS dari ayat beserta harakatnya),
+  balaghah/i'rab yang memengaruhi makna, sabab nuzul (hanya bila ada riwayat yang masyhur;
+  jika tidak ada, tulis "Tidak ada sabab nuzul khusus yang masyhur."), penjelasan makna ayat
+  (4-6 kalimat), lalu hukum dan pelajaran praktis (3-5 poin).
+- Tafsir al-Mishbah: tema/tujuan surah, munasabah dengan ayat sebelum/sesudahnya, makna kosakata
+  kunci, penjelasan yang mengalir (4-6 kalimat), lalu pesan dan relevansinya masa kini (3-5 poin).
+- Ayat terkait: 1-3 nomor ayat lain yang temanya berkaitan erat (hanya yang kamu yakin benar).
+
 Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
 {
-  "ringkasan": "1-2 kalimat bahasa Indonesia tentang topik ini",
+  "ringkasan": "2-3 kalimat bahasa Indonesia tentang topik ini",
   "hasil": [
     {
       "surah": "nama surah, mis. Al-Baqarah",
       "nomor": "nomor surah:ayat, mis. 2:255, atau rentang mis. 112:1-4",
-      "tafsir_munir": "2-4 kalimat dengan pendekatan Tafsir al-Munir: kosakata/balaghah penting, sabab nuzul bila ada, makna ayat, lalu hukum/pelajaran praktis",
-      "tafsir_mishbah": "2-4 kalimat dengan pendekatan Tafsir al-Mishbah: munasabah/tema surah, makna kosakata, pesan dan relevansinya masa kini"
+      "tafsir_munir": {
+        "mufradat": [{"kata": "kata Arab dari ayat", "arti": "makna dan nuansanya"}],
+        "balaghah": "uslub/balaghah atau i'rab penting dan pengaruhnya pada makna",
+        "asbabun_nuzul": "sabab nuzul, atau keterangan bahwa tidak ada yang masyhur",
+        "penjelasan": "penjelasan makna ayat (at-tafsir wal-bayan)",
+        "hukum": ["hukum/pelajaran praktis 1", "poin 2", "poin 3"]
+      },
+      "tafsir_mishbah": {
+        "tema": "tema dan tujuan surah serta posisi ayat ini di dalamnya",
+        "munasabah": "keterkaitan dengan ayat sebelum/sesudahnya",
+        "kosakata": [{"kata": "kata Arab kunci", "arti": "makna menurut bahasa & konteks"}],
+        "penjelasan": "penjelasan yang mengalir",
+        "pesan": ["pesan & relevansi masa kini 1", "poin 2", "poin 3"]
+      },
+      "ayat_terkait": ["2:153", "3:200"]
     }
   ]
 }

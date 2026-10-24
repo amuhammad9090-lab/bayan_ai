@@ -245,6 +245,50 @@ class LogoutButton extends StatelessWidget {
   }
 }
 
+/// Tombol hapus akun: bentuk sama dengan [LogoutButton] tapi versi garis
+/// (tanpa isi) dan sedikit lebih ramping, supaya jelas beda dan nggak
+/// tertukar dengan tombol keluar.
+class DeleteAccountButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  const DeleteAccountButton({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.chipFg(AppColors.danger);
+    return Opacity(
+      opacity: onTap == null ? 0.5 : 1,
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: AppColors.danger.withValues(alpha: context.isDark ? 0.5 : 0.4),
+            width: 1.2,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: SizedBox(
+            height: 46,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(AppIcons.userX, size: 17, color: c),
+                const SizedBox(width: 10),
+                Text(
+                  'Hapus akun',
+                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: c),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ───────────────────────── Ubah nama ─────────────────────────
 
 Future<void> showEditNameSheet(BuildContext context, String current) {

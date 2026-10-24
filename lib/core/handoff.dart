@@ -1,6 +1,6 @@
 import 'dart:async';
 
-enum HandoffTarget { nahwu, quran }
+enum HandoffTarget { nahwu, quran, ocr }
 
 class HandoffMessage {
   final HandoffTarget target;

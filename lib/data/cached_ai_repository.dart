@@ -111,7 +111,8 @@ class CachedAiRepository implements AiRepository, AiCache {
   @override
   Future<QuranSearchResult> searchQuran(String query) async {
     final q = query.trim();
-    final key = _k('quran', q.codeUnits, q.length);
+    // v2: format tafsir terstruktur (hasil format lama nggak dipakai lagi).
+    final key = _k('quran2', q.codeUnits, q.length);
     final hit = _get(key);
     if (hit != null) return QuranSearchResult.parse(hit);
     final r = await _inner.searchQuran(q);

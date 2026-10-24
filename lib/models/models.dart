@@ -119,28 +119,117 @@ class NahwuAnalysis {
 
 // ───────────────────────── Quran ─────────────────────────
 
+/// Satu bagian tafsir (mis. "Kosakata", "Penjelasan", "Pelajaran").
+/// Isinya bisa paragraf ([text]), poin-poin ([points]), atau daftar kata ([words]).
+class TafsirSection {
+  final String title;
+  final String text;
+  final List<String> points;
+  final List<(String kata, String arti)> words;
+
+  const TafsirSection(
+    this.title, {
+    this.text = '',
+    this.points = const [],
+    this.words = const [],
+  });
+
+  bool get isEmpty => text.isEmpty && points.isEmpty && words.isEmpty;
+
+  String toPlainText() {
+    final b = StringBuffer('$title:');
+    if (text.isNotEmpty) b.write(' $text');
+    for (final p in points) {
+      b.write('\n- $p');
+    }
+    for (final (k, a) in words) {
+      b.write('\n- $k: $a');
+    }
+    return b.toString();
+  }
+
+  /// Urutan & judul bagian tiap pendekatan tafsir (kunci JSON -> judul).
+  static const munirSchema = <(String, String)>[
+    ('mufradat', 'Kosakata (mufradat)'),
+    ('balaghah', 'Balaghah & i\'rab penting'),
+    ('asbabun_nuzul', 'Sabab nuzul'),
+    ('penjelasan', 'Tafsir & penjelasan'),
+    ('hukum', 'Fiqh al-hayah: hukum & pelajaran'),
+  ];
+  static const mishbahSchema = <(String, String)>[
+    ('tema', 'Tema & tujuan surah'),
+    ('munasabah', 'Munasabah (keterkaitan ayat)'),
+    ('kosakata', 'Makna kosakata'),
+    ('penjelasan', 'Penjelasan'),
+    ('pesan', 'Pesan & relevansi masa kini'),
+  ];
+
+  /// Format lama (satu paragraf) tetap didukung: jadi satu bagian "Ringkasan".
+  static List<TafsirSection> parse(dynamic v, List<(String, String)> schema) {
+    if (v is String) {
+      final t = v.trim();
+      return t.isEmpty ? const [] : [TafsirSection('Ringkasan', text: t)];
+    }
+    if (v is! Map) return const [];
+    final out = <TafsirSection>[];
+    for (final (key, title) in schema) {
+      final x = v[key];
+      if (x is String && x.trim().isNotEmpty) {
+        out.add(TafsirSection(title, text: x.trim()));
+      } else if (x is List) {
+        final words = <(String, String)>[];
+        final points = <String>[];
+        for (final e in x) {
+          if (e is Map) {
+            final k = _s(e['kata']);
+            final a = _s(e['arti']);
+            if (k.isNotEmpty && a.isNotEmpty) words.add((k, a));
+          } else {
+            final p = _s(e);
+            if (p.isNotEmpty) points.add(p);
+          }
+        }
+        if (words.isNotEmpty || points.isNotEmpty) {
+          out.add(TafsirSection(title, points: points, words: words));
+        }
+      }
+    }
+    return out;
+  }
+}
+
 class AyatResult {
   final String surah;
   final String nomor; // contoh "2:255"
   final String arab;
   final String terjemah;
-  final String munir; // pendekatan Tafsir al-Munir
-  final String mishbah; // pendekatan Tafsir al-Mishbah
+  final List<TafsirSection> munir; // pendekatan Tafsir al-Munir
+  final List<TafsirSection> mishbah; // pendekatan Tafsir al-Mishbah
   final String tafsir; // fallback kalau model cuma ngasih satu tafsir
+
+  /// Rujukan ayat lain yang berkaitan, mis. "Al-Baqarah 2:153" (sudah divalidasi).
+  final List<String> terkait;
 
   const AyatResult({
     required this.surah,
     required this.nomor,
     required this.arab,
     required this.terjemah,
-    this.munir = '',
-    this.mishbah = '',
+    this.munir = const [],
+    this.mishbah = const [],
     this.tafsir = '',
+    this.terkait = const [],
   });
 
   bool get hasTafsir => munir.isNotEmpty || mishbah.isNotEmpty || tafsir.isNotEmpty;
 
-  AyatResult copyWith({String? surah, String? nomor, String? arab, String? terjemah}) =>
+  AyatResult copyWith({
+    String? surah,
+    String? nomor,
+    String? arab,
+    String? terjemah,
+    List<String>? terkait,
+  }) =>
       AyatResult(
         surah: surah ?? this.surah,
         nomor: nomor ?? this.nomor,
@@ -149,6 +238,7 @@ class AyatResult {
         munir: munir,
         mishbah: mishbah,
         tafsir: tafsir,
+        terkait: terkait ?? this.terkait,
       );
 
   factory AyatResult.fromJson(Map<String, dynamic> j) => AyatResult(
@@ -156,9 +246,10 @@ class AyatResult {
         nomor: _s(j['nomor']),
         arab: _s(j['arab']),
         terjemah: _s(j['terjemah']),
-        munir: _s(j['tafsir_munir']),
-        mishbah: _s(j['tafsir_mishbah']),
+        munir: TafsirSection.parse(j['tafsir_munir'], TafsirSection.munirSchema),
+        mishbah: TafsirSection.parse(j['tafsir_mishbah'], TafsirSection.mishbahSchema),
         tafsir: _s(j['tafsir']),
+        terkait: (j['ayat_terkait'] as List? ?? []).map(_s).where((e) => e.isNotEmpty).toList(),
       );
 
   String toPlainText() {
@@ -166,9 +257,20 @@ class AyatResult {
     b.writeln('QS. $surah ($nomor)');
     if (arab.isNotEmpty) b.writeln(arab);
     if (terjemah.isNotEmpty) b.writeln('\nTerjemah: $terjemah');
-    if (munir.isNotEmpty) b.writeln('\nPendekatan Tafsir al-Munir: $munir');
-    if (mishbah.isNotEmpty) b.writeln('\nPendekatan Tafsir al-Mishbah: $mishbah');
+    if (munir.isNotEmpty) {
+      b.writeln('\nPendekatan Tafsir al-Munir');
+      for (final x in munir) {
+        b.writeln(x.toPlainText());
+      }
+    }
+    if (mishbah.isNotEmpty) {
+      b.writeln('\nPendekatan Tafsir al-Mishbah');
+      for (final x in mishbah) {
+        b.writeln(x.toPlainText());
+      }
+    }
     if (tafsir.isNotEmpty) b.writeln('\nTafsir: $tafsir');
+    if (terkait.isNotEmpty) b.writeln('\nAyat terkait: ${terkait.join(', ')}');
     return b.toString().trim();
   }
 }

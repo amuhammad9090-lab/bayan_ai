@@ -173,8 +173,10 @@ class AuthService {
         await u.reauthenticateWithProvider(provider);
       }
     }
-    // Data profil dulu: setelah akun terhapus, Rules sudah menolak aksesnya.
-    await _db.collection('users').doc(u.uid).delete();
+    // Data di server dulu: setelah akun terhapus, Rules sudah menolak aksesnya.
+    final ref = _db.collection('users').doc(u.uid);
+    await ref.collection('backup').doc('history').delete(); // cadangan riwayat
+    await ref.delete();
     await u.delete();
   }
 

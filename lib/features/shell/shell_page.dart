@@ -46,6 +46,10 @@ class ShellPage extends StatelessWidget {
     final nav = context.watch<NavProvider>();
     final i = nav.index;
     final wide = context.isWide;
+    // Dark mode: pil Beranda ikut warna banner Beranda yang lebih dalam.
+    final colors = context.isDark
+        ? [AppColors.homeDarkAccent, ..._navColors.skip(1)]
+        : _navColors;
 
     final content = IndexedStack(
       index: i,
@@ -72,7 +76,7 @@ class ShellPage extends StatelessWidget {
                   SideNav(
                     index: i,
                     items: _navItems,
-                    colors: _navColors,
+                    colors: colors,
                     onTap: nav.go,
                   ),
                   Expanded(child: MaxWidth(child: content)),
@@ -84,7 +88,7 @@ class ShellPage extends StatelessWidget {
             : _FloatingNav(
                 index: i,
                 items: _navItems,
-                colors: _navColors,
+                colors: colors,
                 onTap: nav.go,
               ),
       ),
