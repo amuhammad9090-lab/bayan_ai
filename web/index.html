@@ -1,38 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    Ganti lewat argumen `flutter build web --base-href /path/` kalau web
+    tidak di-host di root domain.
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Asisten AI untuk OCR mushaf, ayat & tafsir, dan nahwu.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Bayan AI: asisten belajar Al-Qur'an dan Nahwu. Pindai mushaf jadi teks Arab berharakat, cari ayat dan tafsir, serta analisis nahwu kata per kata.">
+  <meta name="theme-color" content="#1B6FB0">
 
-  <!-- iOS meta tags & icons -->
+  <!-- iOS / PWA -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Bayan AI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Pratinjau saat link dibagikan -->
+  <meta property="og:title" content="Bayan AI">
+  <meta property="og:description" content="Asisten belajar Al-Qur'an & Nahwu berbasis AI.">
+  <meta property="og:image" content="icons/Icon-512.png">
 
+  <link rel="icon" type="image/png" href="favicon.png">
   <title>Bayan AI</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Layar muat awal: sama dengan splash aplikasi, hilang saat frame pertama Flutter tampil. */
+    html, body { margin: 0; height: 100%; background: #0E2340; }
+    #loader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+      background: linear-gradient(135deg, #0E2340 0%, #1B6FB0 55%, #38A4F0 100%);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #fff;
+      transition: opacity .45s ease;
+    }
+    #loader.hide { opacity: 0; pointer-events: none; }
+    #loader img {
+      width: 84px; height: 84px; border-radius: 22px;
+      box-shadow: 0 8px 24px rgba(10, 40, 80, .35);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    #loader .name { font-size: 18px; font-weight: 600; letter-spacing: 4px; opacity: .95; }
+    #loader .bar { width: 120px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
+    #loader .bar::after {
+      content: ""; display: block; width: 40%; height: 100%; border-radius: 4px; background: #fff;
+      animation: slide 1.1s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) { #loader img, #loader .bar::after { animation: none; } }
+  </style>
 </head>
 <body>
+  <div id="loader" role="progressbar" aria-label="Memuat Bayan AI">
+    <img src="icons/logo-tile.png" alt="">
+    <div class="name">BAYAN AI</div>
+    <div class="bar"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var l = document.getElementById('loader');
+      if (!l) return;
+      l.classList.add('hide');
+      setTimeout(function () { l.remove(); }, 500);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

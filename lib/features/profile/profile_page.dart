@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/art.dart';
 import '../../core/icons.dart';
+import '../../core/responsive.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../shared/widgets/common.dart';
@@ -12,6 +13,7 @@ import '../auth/account_card.dart' show confirmLogout;
 import '../auth/auth_provider.dart';
 import '../history/history_provider.dart';
 import '../history/history_sheet.dart';
+import 'delete_account_sheet.dart';
 import 'profile_header.dart';
 import 'profile_parts.dart';
 
@@ -21,7 +23,7 @@ Future<void> openProfile(BuildContext context) {
     PageRouteBuilder<void>(
       transitionDuration: const Duration(milliseconds: 380),
       reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => const ProfilePage(),
+      pageBuilder: (_, __, ___) => const MaxWidth(max: 760, child: ProfilePage()),
       transitionsBuilder: (_, anim, __, child) {
         final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
         return FadeTransition(
@@ -283,8 +285,20 @@ class ProfilePage extends StatelessWidget {
                   // ── Keluar ──
                   if (guest)
                     const Footnote('Kamu sedang dalam mode tamu. Hubungkan Firebase untuk memiliki akun dan profil.')
-                  else
+                  else ...[
                     LogoutButton(onTap: () => confirmLogout(context)),
+                    const SizedBox(height: 14),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: auth.busy ? null : () => showDeleteAccountSheet(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: context.chipFg(AppColors.danger),
+                        ),
+                        icon: const Icon(AppIcons.userX, size: 16),
+                        label: const Text('Hapus akun', style: TextStyle(fontSize: 13)),
+                      ),
+                    ),
+                  ],
                 ]
                     .animate(interval: 40.ms)
                     .fadeIn(duration: 300.ms)),

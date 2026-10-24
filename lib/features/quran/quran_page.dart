@@ -188,8 +188,9 @@ class QuranPage extends StatelessWidget {
             AppCard(child: RichResult(text: result.raw, arabicSize: arabicSize)),
           const SizedBox(height: 6),
           const Footnote(
-            'Hasil dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
-            'langsung dari kitabnya. Cocokkan teks ayat dengan mushaf dan rujuk kitabnya sebelum digunakan untuk mengajar.',
+            'Teks ayat dan terjemah dari Al-Qur\'an Kemenag RI. Pemilihan ayat, ringkasan, dan '
+            'tafsir dibuat oleh AI dengan pendekatan Tafsir al-Munir dan al-Mishbah, bukan kutipan '
+            'langsung dari kitabnya. Rujuk kitabnya sebelum digunakan untuk mengajar.',
           ),
         ],
       ],

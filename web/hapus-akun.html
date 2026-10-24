@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hapus Akun Bayan AI</title>
+  <meta name="description" content="Cara menghapus akun Bayan AI beserta datanya.">
+  <style>
+    :root { --bg:#EDF4FB; --card:#fff; --text:#13203A; --muted:#5F6E86; --accent:#2490DC; --danger:#E5484D; --border:#E2EBF5; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0F1729; --card:#18223A; --text:#E8EEFB; --muted:#9DAECD; --accent:#66BAF7; --border:#2B3957; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    main { max-width:640px; margin:0 auto; padding:40px 16px 56px; }
+    h1 { font-size:26px; margin:0 0 6px; }
+    h2 { font-size:17px; margin:0 0 10px; }
+    p.lead { color:var(--muted); margin:0 0 24px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:16px; }
+    ol, ul { margin:0; padding-left:20px; }
+    li { margin:4px 0; }
+    .warn { border-color:color-mix(in srgb, var(--danger) 45%, var(--border)); }
+    a { color:var(--accent); }
+    code { background:var(--bg); padding:1px 6px; border-radius:6px; }
+    footer { color:var(--muted); font-size:13px; margin-top:24px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Hapus akun Bayan AI</h1>
+  <p class="lead">Kamu bisa menghapus akun beserta datanya kapan saja, langsung dari aplikasi atau lewat permintaan email.</p>
+
+  <section class="card">
+    <h2>Lewat aplikasi (langsung)</h2>
+    <ol>
+      <li>Buka aplikasi Bayan AI dan masuk ke akun kamu.</li>
+      <li>Ketuk foto profil di Beranda untuk membuka halaman <b>Profil</b>.</li>
+      <li>Gulir ke bawah, ketuk <b>Hapus akun</b>.</li>
+      <li>Konfirmasi dengan kata sandi (akun email) atau pilih akun Google kamu, lalu ketuk <b>Hapus akun permanen</b>.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>Lewat email (tanpa aplikasi)</h2>
+    <p>Kirim email dari alamat yang terdaftar ke <a id="contact" href="mailto:EMAIL_KONTAK?subject=Permintaan%20hapus%20akun%20Bayan%20AI">EMAIL_KONTAK</a> dengan judul <code>Permintaan hapus akun Bayan AI</code>. Permintaan diproses paling lambat 30 hari.</p>
+  </section>
+
+  <section class="card warn">
+    <h2>Data yang dihapus</h2>
+    <ul>
+      <li>Akun masuk (email/Google) di Firebase Authentication.</li>
+      <li>Data profil di server: nama, email, foto, penyedia masuk, dan waktu masuk.</li>
+      <li>Riwayat dan cache hasil AI milik akun tersebut di perangkat yang dipakai untuk menghapus.</li>
+    </ul>
+    <p style="margin:12px 0 0;color:var(--muted)">Tidak ada data yang disimpan setelah akun dihapus. API key Gemini dan pengaturan tampilan hanya tersimpan di perangkat kamu dan hilang saat aplikasi di-uninstall.</p>
+  </section>
+
+  <footer>Bayan AI</footer>
+</main>
+</body>
+</html>

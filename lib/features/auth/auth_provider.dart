@@ -55,10 +55,32 @@ class AuthProvider extends ChangeNotifier {
   /// null = belum ada info, true = dokumen user tersimpan, false = gagal (cek Rules).
   bool? get firestoreOk => _firestoreOk;
 
+  /// uid yang sesinya sudah dicek ke server (sekali per sesi).
+  String? _checkedUid;
+
   void _onUser(AppUser? u) {
     _user = u;
     _status = u == null ? AuthStatus.signedOut : AuthStatus.signedIn;
     notifyListeners();
+    if (u == null) {
+      _checkedUid = null;
+    } else if (u.uid != _checkedUid) {
+      _checkedUid = u.uid;
+      // Login manual sudah sinkron sendiri; sesi tersimpan dicek di sini.
+      if (!_busy) unawaited(validateSession());
+    }
+  }
+
+  /// Cek akun masih ada/aktif & dokumen profil masih ada. Aman dipanggil
+  /// berkali-kali (mis. tiap app kembali ke depan); gagal jaringan diabaikan.
+  Future<void> validateSession({bool sync = true}) async {
+    final s = _service;
+    if (s == null || _user == null || _busy) return;
+    final ok = await s.validateSession(sync: sync);
+    if (ok != null && ok != _firestoreOk) {
+      _firestoreOk = ok;
+      notifyListeners();
+    }
   }
 
   void clearError() {
@@ -99,6 +121,17 @@ class AuthProvider extends ChangeNotifier {
       _user = s.current ?? _user;
       notifyListeners();
     } catch (_) {}
+  }
+
+  /// Dipanggil setelah akun berhasil dihapus (bersihkan data lokal milik uid).
+  void Function(String uid)? onAccountDeleted;
+
+  /// Hapus akun permanen. `true` kalau berhasil.
+  Future<bool> deleteAccount({String? password}) async {
+    final uid = _user?.uid;
+    final ok = await _guard((s) => s.deleteAccount(password: password));
+    if (ok && uid != null) onAccountDeleted?.call(uid);
+    return ok;
   }
 
   Future<bool> resetPassword(String email) =>

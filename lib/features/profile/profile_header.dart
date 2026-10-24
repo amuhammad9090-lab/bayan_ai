@@ -46,11 +46,15 @@ class ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
       (old.onEdit == null) != (onEdit == null);
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      // Pakai lebar header sebenarnya (bukan lebar layar) supaya avatar tetap
+      // di tengah saat halaman dibatasi lebarnya di layar lebar.
+      LayoutBuilder(builder: (context, c) => _build(context, shrinkOffset, c.maxWidth));
+
+  Widget _build(BuildContext context, double shrinkOffset, double width) {
     final range = maxExtent - minExtent;
     final t = (shrinkOffset / range).clamp(0.0, 1.0);
     final e = Curves.easeOutCubic.transform(t);
-    final width = MediaQuery.of(context).size.width;
     final gradient = AppColors.homeHeader(dark);
     final radius = Radius.circular(32 - 10 * t);
 

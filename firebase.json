@@ -1,1 +1,72 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"bayan-ai-a2831","appId":"1:814732092554:android:fd8f7742d33b4befa03973","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"bayan-ai-a2831","configurations":{"android":"1:814732092554:android:fd8f7742d33b4befa03973","ios":"1:814732092554:ios:1f899b83271282a8a03973","macos":"1:814732092554:ios:1f899b83271282a8a03973","web":"1:814732092554:web:2bf5197382ccc228a03973","windows":"1:814732092554:web:7745a3cf1f1649d9a03973"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "bayan-ai-a2831",
+          "appId": "1:814732092554:android:fd8f7742d33b4befa03973",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "bayan-ai-a2831",
+          "configurations": {
+            "android": "1:814732092554:android:fd8f7742d33b4befa03973",
+            "ios": "1:814732092554:ios:1f899b83271282a8a03973",
+            "macos": "1:814732092554:ios:1f899b83271282a8a03973",
+            "web": "1:814732092554:web:2bf5197382ccc228a03973",
+            "windows": "1:814732092554:web:7745a3cf1f1649d9a03973"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|json|wasm|png|jpg|ttf|otf|frag)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600"
+          }
+        ]
+      },
+      {
+        "source": "/@(index.html|flutter_bootstrap.js|flutter_service_worker.js|main.dart.js|manifest.json|version.json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

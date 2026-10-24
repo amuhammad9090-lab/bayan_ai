@@ -9,6 +9,7 @@ abstract class KeyValueStore {
   Future<void> setString(String key, String value);
   Future<void> setBool(String key, bool value);
   Future<void> setDouble(String key, double value);
+  Future<void> remove(String key);
 }
 
 class PrefsStore implements KeyValueStore {
@@ -29,4 +30,6 @@ class PrefsStore implements KeyValueStore {
   Future<void> setBool(String key, bool value) => _p.setBool(key, value);
   @override
   Future<void> setDouble(String key, double value) => _p.setDouble(key, value);
+  @override
+  Future<void> remove(String key) => _p.remove(key);
 }

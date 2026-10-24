@@ -178,8 +178,8 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const radius = BorderRadius.all(Radius.circular(26));
+    // Lebar diatur pemanggil (carousel: 216, layar lebar: dibagi rata).
     return Container(
-      width: 216,
       decoration: BoxDecoration(
         borderRadius: radius,
         boxShadow: context.isDark

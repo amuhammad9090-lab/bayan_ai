@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +58,7 @@ class _UserScoped extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NavProvider(deps.handoff)),
         ChangeNotifierProvider(create: (_) => OcrProvider(ai, deps.history)),
         ChangeNotifierProvider(
-          create: (_) => QuranProvider(ai, deps.history, deps.handoff),
+          create: (_) => QuranProvider(ai, deps.quranText, deps.history, deps.handoff),
         ),
         ChangeNotifierProvider(
           create: (_) => NahwuProvider(ai, deps.history, deps.handoff),
@@ -98,18 +97,9 @@ class _AppView extends StatelessWidget {
                 ? Brightness.light
                 : Brightness.dark,
           ),
-          child: kIsWeb
-              ? ColoredBox(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: child!,
-                    ),
-                  ),
-                )
-              : child!,
+          // Tata letak lebar (web/desktop) diatur per halaman: sidebar di
+          // ShellPage, bingkai di AppGate, batas lebar di Profil.
+          child: child!,
         );
       },
       home: const AppGate(),

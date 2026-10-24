@@ -11,10 +11,23 @@ String stripFences(String raw) {
 }
 
 /// Teks mentah dianggap "kosong" kalau benar-benar kosong atau cuma kerangka
-/// JSON tanpa isi (mis. {"hasil": []}) — jangan ditampilkan ke pengguna.
+/// JSON valid tanpa isi (mis. {"hasil": []}).
 bool _blankRaw(String raw) {
   final t = stripFences(raw);
-  return t.isEmpty || t.startsWith('{') || t.startsWith('[');
+  if (t.isEmpty) return true;
+  if (!t.startsWith('{') && !t.startsWith('[')) return false;
+  try {
+    jsonDecode(t);
+    return true;
+  } catch (_) {
+    return false; // JSON rusak/terpotong: bukan "kosong", lihat [_brokenRaw].
+  }
+}
+
+/// JSON yang rusak atau terpotong (mis. jawaban model kepotong di tengah).
+bool _brokenRaw(String raw) {
+  final t = stripFences(raw);
+  return (t.startsWith('{') || t.startsWith('[')) && !_blankRaw(t);
 }
 
 String _s(dynamic v) => v?.toString().trim() ?? '';
@@ -65,6 +78,7 @@ class NahwuAnalysis {
 
   bool get isStructured => words.isNotEmpty;
   bool get isEmpty => !isStructured && _blankRaw(raw);
+  bool get isBroken => !isStructured && _brokenRaw(raw);
 
   factory NahwuAnalysis.parse(String text) {
     try {
@@ -126,6 +140,17 @@ class AyatResult {
 
   bool get hasTafsir => munir.isNotEmpty || mishbah.isNotEmpty || tafsir.isNotEmpty;
 
+  AyatResult copyWith({String? surah, String? nomor, String? arab, String? terjemah}) =>
+      AyatResult(
+        surah: surah ?? this.surah,
+        nomor: nomor ?? this.nomor,
+        arab: arab ?? this.arab,
+        terjemah: terjemah ?? this.terjemah,
+        munir: munir,
+        mishbah: mishbah,
+        tafsir: tafsir,
+      );
+
   factory AyatResult.fromJson(Map<String, dynamic> j) => AyatResult(
         surah: _s(j['surah']),
         nomor: _s(j['nomor']),
@@ -153,14 +178,19 @@ class QuranSearchResult {
   final List<AyatResult> ayat;
   final String raw;
 
+  /// true = teks Arab & terjemah sudah diganti data resmi Kemenag.
+  final bool verified;
+
   const QuranSearchResult({
     this.ringkasan = '',
     this.ayat = const [],
     this.raw = '',
+    this.verified = false,
   });
 
   bool get isStructured => ayat.isNotEmpty;
   bool get isEmpty => !isStructured && _blankRaw(raw);
+  bool get isBroken => !isStructured && _brokenRaw(raw);
 
   factory QuranSearchResult.parse(String text) {
     try {
@@ -169,7 +199,8 @@ class QuranSearchResult {
         final list = (data['hasil'] as List? ?? [])
             .whereType<Map>()
             .map((e) => AyatResult.fromJson(Map<String, dynamic>.from(e)))
-            .where((a) => a.arab.isNotEmpty || a.terjemah.isNotEmpty)
+            // Yang penting nomor ayatnya; teks diambil dari data resmi.
+            .where((a) => a.nomor.isNotEmpty)
             .toList();
         if (list.isNotEmpty) {
           return QuranSearchResult(

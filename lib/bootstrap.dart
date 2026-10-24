@@ -7,6 +7,7 @@ import 'core/handoff.dart';
 import 'core/storage.dart';
 import 'data/cached_ai_repository.dart';
 import 'data/gemini_ai_repository.dart';
+import 'data/quran_text.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/history/history_provider.dart';
 import 'features/settings/settings_provider.dart';
@@ -21,6 +22,7 @@ class AppDeps {
     required this.history,
     required this.cached,
     required this.auth,
+    required this.quranText,
   });
 
   final KeyValueStore store;
@@ -29,6 +31,9 @@ class AppDeps {
   final HistoryProvider history;
   final CachedAiRepository cached;
   final AuthProvider auth;
+
+  /// Teks & terjemah Al-Qur'an resmi (offline).
+  final QuranText quranText;
 
   AiRepository get ai => cached;
 
@@ -57,6 +62,11 @@ class AppDeps {
 
     auth.addListener(syncUser);
     syncUser();
+    // Akun dihapus: riwayat & cache AI miliknya di HP ini ikut dihapus.
+    auth.onAccountDeleted = (uid) {
+      history.purgeUser(uid);
+      cached.purgeUser(uid);
+    };
 
     return AppDeps._(
       store: store,
@@ -65,6 +75,7 @@ class AppDeps {
       history: history,
       cached: cached,
       auth: auth,
+      quranText: QuranText()..warmUp(),
     );
   }
 

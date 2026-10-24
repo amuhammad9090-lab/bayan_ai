@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/icons.dart';
+import '../../core/responsive.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/animations.dart';
+import 'side_nav.dart';
 import '../home/home_page.dart';
 import '../nahwu/nahwu_page.dart';
 import '../ocr/ocr_page.dart';
@@ -43,6 +45,18 @@ class ShellPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final nav = context.watch<NavProvider>();
     final i = nav.index;
+    final wide = context.isWide;
+
+    final content = IndexedStack(
+      index: i,
+      children: [
+        for (var k = 0; k < _pages.length; k++)
+          TabEntrance(
+            active: i == k,
+            child: _pages[k],
+          ),
+      ],
+    );
 
     // Back di tab selain Beranda -> balik ke Beranda dulu, baru keluar app.
     return PopScope(
@@ -51,22 +65,28 @@ class ShellPage extends StatelessWidget {
         if (!didPop) nav.go(NavProvider.home);
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: i,
-          children: [
-            for (var k = 0; k < _pages.length; k++)
-              TabEntrance(
-                active: i == k,
-                child: _pages[k],
+        // Layar lebar (web/laptop/tablet): sidebar kiri + konten di tengah.
+        body: wide
+            ? Row(
+                children: [
+                  SideNav(
+                    index: i,
+                    items: _navItems,
+                    colors: _navColors,
+                    onTap: nav.go,
+                  ),
+                  Expanded(child: MaxWidth(child: content)),
+                ],
+              )
+            : content,
+        bottomNavigationBar: wide
+            ? null
+            : _FloatingNav(
+                index: i,
+                items: _navItems,
+                colors: _navColors,
+                onTap: nav.go,
               ),
-          ],
-        ),
-        bottomNavigationBar: _FloatingNav(
-          index: i,
-          items: _navItems,
-          colors: _navColors,
-          onTap: nav.go,
-        ),
       ),
     );
   }

@@ -5,16 +5,18 @@ import 'package:flutter/foundation.dart';
 import '../../core/ai_repository.dart';
 import '../../core/handoff.dart';
 import '../../core/history_recorder.dart';
+import '../../data/quran_text.dart';
 import '../../models/models.dart';
 
 class QuranProvider extends ChangeNotifier {
-  QuranProvider(this._ai, this._history, HandoffService handoff) {
+  QuranProvider(this._ai, this._text, this._history, HandoffService handoff) {
     _sub = handoff.stream.listen((m) {
       if (m.target == HandoffTarget.quran) setQuery(m.text);
     });
   }
 
   final AiRepository _ai;
+  final QuranText _text;
   final HistoryRecorder _history;
   late final StreamSubscription<HandoffMessage> _sub;
 
@@ -80,9 +82,20 @@ class QuranProvider extends ChangeNotifier {
       if (r.isEmpty) {
         _error = 'Belum ada ayat yang cocok dengan "$q". '
             'Coba kata kunci lain, misalnya topik atau nama surah.';
+      } else if (!r.isStructured) {
+        // Jawaban bebas dari AI bisa berisi teks ayat karangan: jangan ditampilkan.
+        _error = 'Jawaban AI terpotong atau tidak terbaca. Silakan coba lagi.';
       } else {
-        _result = r;
-        await _history.record(HistoryType.quran, q, r.toPlainText());
+        // AI cuma memilih nomor ayat; teks & terjemah diambil dari data Kemenag.
+        final v = await _text.verify(r);
+        if (gen != _gen) return;
+        if (v.ayat.isEmpty) {
+          _error = 'Nomor ayat dari AI tidak valid. Silakan coba lagi '
+              'atau sebutkan nama surahnya.';
+        } else {
+          _result = v;
+          await _history.record(HistoryType.quran, q, v.toPlainText());
+        }
       }
     } on AiException catch (e) {
       if (gen == _gen) _error = e.message;

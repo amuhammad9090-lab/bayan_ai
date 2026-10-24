@@ -33,6 +33,15 @@ class HistoryProvider extends ChangeNotifier implements HistoryRecorder {
     notifyListeners();
   }
 
+  /// Hapus permanen riwayat milik [uid] di perangkat ini (saat akun dihapus).
+  Future<void> purgeUser(String uid) async {
+    await _store.remove('${_baseKey}_$uid');
+    if (_uid == uid) {
+      _items = [];
+      notifyListeners();
+    }
+  }
+
   List<HistoryItem> get items => List.unmodifiable(_items);
   List<HistoryItem> get recent => _items.take(4).toList();
   int count(HistoryType t) => _items.where((e) => e.type == t).length;

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/art.dart';
 import '../../core/icons.dart';
+import '../../core/responsive.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../shared/widgets/animations.dart';
@@ -125,11 +126,82 @@ class _HomePageState extends State<HomePage> {
     final history = context.watch<HistoryProvider>();
     final dark = context.isDark;
     final top = MediaQuery.of(context).padding.top;
+    final wide = context.isWide;
 
     Widget pad(Widget w) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: w,
         );
+
+    // Pil fitur & kartu fitur: di layar lebar sebaris, di HP 2x2 / carousel.
+    final pills = <Widget>[
+      _TopicPill(
+        icon: AppIcons.quran,
+        label: "Qur'an",
+        color: AppColors.featQuran,
+        filled: true,
+        onTap: () => nav.go(NavProvider.quran),
+      ),
+      _TopicPill(
+        icon: AppIcons.nahwu,
+        label: 'Nahwu',
+        color: AppColors.featNahwu,
+        onTap: () => nav.go(NavProvider.nahwu),
+      ),
+      _TopicPill(
+        icon: AppIcons.ocr,
+        label: 'Pindai',
+        color: AppColors.featOcr,
+        onTap: () => nav.go(NavProvider.ocr),
+      ),
+      _TopicPill(
+        icon: AppIcons.history,
+        label: 'Riwayat',
+        color: AppColors.history,
+        onTap: () => showHistorySheet(context),
+      ),
+    ];
+    final cards = <Widget>[
+      _FeatureCard(
+        gradient: AppColors.gradQuran,
+        shadow: AppColors.featQuran,
+        asset: Art.homeQuran,
+        fallback: AppIcons.quran,
+        title: 'Ayat & Tafsir',
+        subtitle: 'Cari ayat berdasarkan topik atau nama surah',
+        chips: [
+          (AppIcons.quran, '${history.count(HistoryType.quran)} hasil'),
+          (AppIcons.bookMarked, '2 tafsir'),
+        ],
+        onTap: () => nav.go(NavProvider.quran),
+      ),
+      _FeatureCard(
+        gradient: AppColors.gradNahwu,
+        shadow: AppColors.featNahwu,
+        asset: Art.homeNahwu,
+        fallback: AppIcons.nahwu,
+        title: 'Analisis Nahwu',
+        subtitle: 'Nahwu kata per kata dengan 7 bab',
+        chips: [
+          (AppIcons.nahwu, '${history.count(HistoryType.nahwu)} hasil'),
+          (AppIcons.lightbulb, '7 bab'),
+        ],
+        onTap: () => nav.go(NavProvider.nahwu),
+      ),
+      _FeatureCard(
+        gradient: AppColors.gradOcr,
+        shadow: AppColors.featOcr,
+        asset: Art.homeOcr,
+        fallback: AppIcons.ocr,
+        title: 'Pindai Mushaf',
+        subtitle: 'Foto halaman jadi teks Arab berharakat',
+        chips: [
+          (AppIcons.ocr, '${history.count(HistoryType.ocr)} hasil'),
+          (AppIcons.sparkles, 'Gemini'),
+        ],
+        onTap: () => nav.go(NavProvider.ocr),
+      ),
+    ];
 
     final items = <Widget>[
       if (!hasKey) ...[
@@ -141,105 +213,58 @@ class _HomePageState extends State<HomePage> {
         style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
       )),
       const SizedBox(height: 10),
-      pad(Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _TopicPill(
-                  icon: AppIcons.quran,
-                  label: "Qur'an",
-                  color: AppColors.featQuran,
-                  filled: true,
-                  onTap: () => nav.go(NavProvider.quran),
+      pad(wide
+          ? Row(
+              children: [
+                for (var k = 0; k < pills.length; k++) ...[
+                  if (k > 0) const SizedBox(width: 10),
+                  Expanded(child: pills[k]),
+                ],
+              ],
+            )
+          : Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: pills[0]),
+                    const SizedBox(width: 10),
+                    Expanded(child: pills[1]),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _TopicPill(
-                  icon: AppIcons.nahwu,
-                  label: 'Nahwu',
-                  color: AppColors.featNahwu,
-                  onTap: () => nav.go(NavProvider.nahwu),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: pills[2]),
+                    const SizedBox(width: 10),
+                    Expanded(child: pills[3]),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _TopicPill(
-                  icon: AppIcons.ocr,
-                  label: 'Pindai',
-                  color: AppColors.featOcr,
-                  onTap: () => nav.go(NavProvider.ocr),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _TopicPill(
-                  icon: AppIcons.history,
-                  label: 'Riwayat',
-                  color: AppColors.history,
-                  onTap: () => showHistorySheet(context),
-                ),
-              ),
-            ],
-          ),
-        ],
-      )),
+              ],
+            )),
       const SizedBox(height: 18),
       SizedBox(
         height: 262,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          clipBehavior: Clip.none,
-          children: [
-            _FeatureCard(
-              gradient: AppColors.gradQuran,
-              shadow: AppColors.featQuran,
-              asset: Art.homeQuran,
-              fallback: AppIcons.quran,
-              title: 'Ayat & Tafsir',
-              subtitle: 'Cari ayat berdasarkan topik atau nama surah',
-              chips: [
-                (AppIcons.quran, '${history.count(HistoryType.quran)} hasil'),
-                (AppIcons.bookMarked, '2 tafsir'),
-              ],
-              onTap: () => nav.go(NavProvider.quran),
-            ),
-            const SizedBox(width: 12),
-            _FeatureCard(
-              gradient: AppColors.gradNahwu,
-              shadow: AppColors.featNahwu,
-              asset: Art.homeNahwu,
-              fallback: AppIcons.nahwu,
-              title: 'Analisis Nahwu',
-              subtitle: 'Nahwu kata per kata dengan 7 bab',
-              chips: [
-                (AppIcons.nahwu, '${history.count(HistoryType.nahwu)} hasil'),
-                (AppIcons.lightbulb, '7 bab'),
-              ],
-              onTap: () => nav.go(NavProvider.nahwu),
-            ),
-            const SizedBox(width: 12),
-            _FeatureCard(
-              gradient: AppColors.gradOcr,
-              shadow: AppColors.featOcr,
-              asset: Art.homeOcr,
-              fallback: AppIcons.ocr,
-              title: 'Pindai Mushaf',
-              subtitle: 'Foto halaman jadi teks Arab berharakat',
-              chips: [
-                (AppIcons.ocr, '${history.count(HistoryType.ocr)} hasil'),
-                (AppIcons.sparkles, 'Gemini'),
-              ],
-              onTap: () => nav.go(NavProvider.ocr),
-            ),
-          ],
-        ),
+        child: wide
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var k = 0; k < cards.length; k++) ...[
+                      if (k > 0) const SizedBox(width: 14),
+                      Expanded(child: cards[k]),
+                    ],
+                  ],
+                ),
+              )
+            : ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                clipBehavior: Clip.none,
+                itemCount: cards.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, k) => SizedBox(width: 216, child: cards[k]),
+              ),
       ),
       const SizedBox(height: 20),
       pad(Row(

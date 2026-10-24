@@ -266,6 +266,8 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       bottomSheetTheme: BottomSheetThemeData(
+        // Layar lebar: sheet nggak melebar selebar layar.
+        constraints: const BoxConstraints(maxWidth: 600),
         backgroundColor: surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: false,

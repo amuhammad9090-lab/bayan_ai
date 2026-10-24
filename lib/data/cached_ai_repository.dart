@@ -31,6 +31,12 @@ class CachedAiRepository implements AiRepository, AiCache {
     _load();
   }
 
+  /// Hapus permanen cache AI milik [uid] di perangkat ini (saat akun dihapus).
+  Future<void> purgeUser(String uid) async {
+    await _store.remove('${_baseKey}_$uid');
+    if (_uid == uid) _entries = {};
+  }
+
   final AiRepository _inner;
   final AiConfigSource _config;
   final KeyValueStore _store;

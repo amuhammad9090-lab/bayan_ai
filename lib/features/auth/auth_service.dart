@@ -54,6 +54,44 @@ class AuthService {
     return u == null ? null : _map(u);
   }
 
+  /// Dipanggil saat app dibuka dengan sesi tersimpan / kembali ke depan:
+  /// 1. cek ke server apakah akun masih ada & aktif (kalau tidak -> logout),
+  /// 2. pastikan dokumen `users/{uid}` ada (dibuat ulang kalau terhapus).
+  /// Mengembalikan status sinkron Firestore, atau null kalau tidak dicek.
+  Future<bool?> validateSession({bool sync = true}) async {
+    final u = _auth.currentUser;
+    if (u == null) return null;
+    try {
+      await u.reload();
+    } on FirebaseAuthException catch (e) {
+      const gone = {'user-not-found', 'user-disabled', 'user-token-expired', 'invalid-user-token'};
+      if (gone.contains(e.code)) {
+        await _auth.signOut();
+        return null;
+      }
+      return null; // mis. offline: biarkan sesi tetap jalan
+    } catch (_) {
+      return null;
+    }
+    if (!sync) return null;
+    final current = _auth.currentUser;
+    if (current == null) return null;
+    final google = current.providerData.any((p) => p.providerId == 'google.com');
+    return _ensureUserDoc(current, google ? 'google' : 'password');
+  }
+
+  /// Buat ulang `users/{uid}` hanya kalau belum ada (hemat tulis).
+  Future<bool> _ensureUserDoc(User u, String provider) async {
+    try {
+      final snap = await _db.collection('users').doc(u.uid).get();
+      if (snap.exists) return true;
+    } catch (e) {
+      debugPrint('Cek dokumen Firestore gagal: $e');
+      return false;
+    }
+    return _syncUser(u, provider);
+  }
+
   /// Muat ulang profil dari server (tarik-untuk-refresh di halaman Profil).
   Future<void> refreshUser() async => _auth.currentUser?.reload();
 
@@ -117,6 +155,29 @@ class AuthService {
 
   Future<void> signOut() => _auth.signOut();
 
+  /// Hapus akun permanen: login ulang (wajib dari Firebase), hapus dokumen
+  /// `users/{uid}`, lalu hapus akun Auth. [password] untuk akun email.
+  Future<void> deleteAccount({String? password}) async {
+    final u = _auth.currentUser;
+    if (u == null) return;
+    final ids = u.providerData.map((p) => p.providerId).toSet();
+    if (ids.contains('password') && password != null) {
+      await u.reauthenticateWithCredential(
+        EmailAuthProvider.credential(email: u.email ?? '', password: password),
+      );
+    } else if (ids.contains('google.com')) {
+      final provider = GoogleAuthProvider();
+      if (kIsWeb) {
+        await u.reauthenticateWithPopup(provider);
+      } else {
+        await u.reauthenticateWithProvider(provider);
+      }
+    }
+    // Data profil dulu: setelah akun terhapus, Rules sudah menolak aksesnya.
+    await _db.collection('users').doc(u.uid).delete();
+    await u.delete();
+  }
+
   /// Upsert `users/{uid}`. Gagal (mis. Rules menolak) tidak membatalkan login.
   Future<bool> _syncUser(User? u, String provider) async {
     if (u == null) return false;
@@ -166,6 +227,10 @@ String? describeAuthError(Object e) {
       case 'operation-not-allowed':
         return 'Metode masuk ini belum diaktifkan di Firebase Console '
             '(Authentication > Sign-in method).';
+      case 'requires-recent-login':
+        return 'Demi keamanan, silakan keluar lalu masuk lagi, kemudian ulangi.';
+      case 'user-mismatch':
+        return 'Akun Google yang dipilih berbeda dengan akun yang sedang masuk.';
       case 'account-exists-with-different-credential':
         return 'Email ini sudah terdaftar dengan metode masuk lain.';
       case 'web-context-canceled':
@@ -176,6 +241,15 @@ String? describeAuthError(Object e) {
       default:
         return 'Gagal masuk (${e.code}).';
     }
+  }
+  if (e is FirebaseException) {
+    if (e.code == 'permission-denied') {
+      return 'Akses data ditolak server (periksa Firestore Rules).';
+    }
+    if (e.code == 'unavailable') {
+      return 'Koneksi internet bermasalah. Periksa jaringan kamu.';
+    }
+    return 'Gagal (${e.code}).';
   }
   return 'Terjadi kesalahan: $e';
 }

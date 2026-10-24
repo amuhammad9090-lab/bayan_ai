@@ -14,7 +14,9 @@ class GeminiAiRepository implements AiRepository {
       : _client = client ?? http.Client();
 
   static const _base = 'https://generativelanguage.googleapis.com/v1beta/models';
-  static const _timeout = Duration(seconds: 90);
+  /// Batas per request dan batas total (semua percobaan + model cadangan).
+  static const _timeout = Duration(seconds: 60);
+  static const _totalBudget = Duration(seconds: 100);
 
   /// Cadangan otomatis saat model pilihan sibuk/kena batas (ringan & longgar di free tier).
   static const _fallbacks = <String>[
@@ -59,15 +61,16 @@ class GeminiAiRepository implements AiRepository {
 Permintaan pengguna: "$query"
 
 Carikan maksimal 3 ayat Al-Qur'an yang paling relevan (atau ayat yang disebutkan langsung oleh pengguna).
+Untuk satu surah pendek atau satu kesatuan makna, boleh berupa rentang ayat (maksimal 10 ayat).
+PENTING: JANGAN menulis teks Arab ayat maupun terjemahnya. Aplikasi mengambil teks dan
+terjemah resmi dari mushaf Kemenag berdasarkan nomor, jadi pastikan nomor surah dan ayat benar.
 Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
 {
   "ringkasan": "1-2 kalimat bahasa Indonesia tentang topik ini",
   "hasil": [
     {
       "surah": "nama surah, mis. Al-Baqarah",
-      "nomor": "nomor surah:ayat, mis. 2:255",
-      "arab": "teks ayat Arab dengan harakat",
-      "terjemah": "terjemah bahasa Indonesia",
+      "nomor": "nomor surah:ayat, mis. 2:255, atau rentang mis. 112:1-4",
       "tafsir_munir": "2-4 kalimat dengan pendekatan Tafsir al-Munir: kosakata/balaghah penting, sabab nuzul bila ada, makna ayat, lalu hukum/pelajaran praktis",
       "tafsir_mishbah": "2-4 kalimat dengan pendekatan Tafsir al-Mishbah: munasabah/tema surah, makna kosakata, pesan dan relevansinya masa kini"
     }
@@ -122,8 +125,10 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
     final key = (apiKey ?? cfg.apiKey).trim();
     if (key.isEmpty) return false;
     try {
+      // Cek ke daftar model (bukan model terpilih): kalau ID model yang salah,
+      // API key tetap dinilai valid.
       final res = await _client
-          .get(Uri.parse('$_base/${cfg.model}'), headers: {'x-goog-api-key': key})
+          .get(Uri.parse('$_base?pageSize=1'), headers: {'x-goog-api-key': key})
           .timeout(const Duration(seconds: 15));
       return res.statusCode == 200;
     } catch (_) {
@@ -190,15 +195,25 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
       },
     };
 
-    // Model utama dulu; kalau server sibuk (503/500/504), kuota habis (429)
-    // atau model tidak tersedia (404), coba ulang lalu pindah ke model cadangan.
+    // Model utama dulu; kalau server sibuk (5xx), kuota habis (429) atau model
+    // tidak tersedia (404), coba ulang lalu pindah ke model cadangan.
+    // Semua percobaan dibatasi total [_totalBudget] supaya loading nggak lama.
     final models = <String>[cfg.model, ..._fallbacks.where((m) => m != cfg.model)];
-    http.Response? res;
+    final clock = Stopwatch()..start();
+    http.Response? ok;
+    // Error paling bermakna: yang pertama, kecuali 404 (model cadangan tak ada)
+    // yang nggak boleh menutupi 429/5xx dari model utama.
+    http.Response? firstErr;
     AiException? netErr;
+
+    Duration remaining() => _totalBudget - clock.elapsed;
+
     outer:
     for (final model in models) {
       for (var attempt = 0; attempt < 2; attempt++) {
         if (attempt > 0) await Future<void>.delayed(const Duration(milliseconds: 1500));
+        final left = remaining();
+        if (left <= const Duration(seconds: 5)) break outer;
         try {
           final r = await _client
               .post(
@@ -209,49 +224,89 @@ Jawab HANYA dengan JSON valid, tanpa teks lain, dengan bentuk:
                 },
                 body: jsonEncode(body),
               )
-              .timeout(_timeout);
-          res = r;
-          netErr = null;
+              .timeout(left < _timeout ? left : _timeout);
           final c = r.statusCode;
-          // Sukses, atau error yang nggak akan membaik dengan ganti model (400/401/403).
-          if (c == 200 || (c < 500 && c != 429 && c != 404)) break outer;
+          if (c == 200) {
+            ok = r;
+            break outer;
+          }
+          if (firstErr == null || (firstErr.statusCode == 404 && c != 404)) firstErr = r;
+          // Error yang nggak membaik dengan ganti model (400/401/403): berhenti.
+          if (c < 500 && c != 429 && c != 404) break outer;
           // Kuota habis / model tak ada: langsung coba model berikutnya.
           if (c == 429 || c == 404) break;
           // 5xx (server sibuk): ulang sekali, lalu model berikutnya.
         } on TimeoutException {
-          res = null;
-          netErr = const AiException('Waktu koneksi habis. Silakan coba lagi.');
-          break;
+          // Sinyal lemah / server lambat: ganti model nggak akan menolong.
+          netErr = const AiException(
+            'Waktu koneksi habis. Periksa koneksi internet lalu coba lagi.',
+          );
+          break outer;
         } on http.ClientException {
-          res = null;
-          netErr = const AiException('Gagal terhubung ke server Gemini.');
+          netErr = const AiException('Gagal terhubung ke server Gemini. Periksa koneksi internet.');
           break outer;
         }
       }
     }
-    if (res == null) {
-      throw netErr ?? const AiException('Gagal terhubung ke server Gemini.');
+
+    if (ok == null) {
+      final e = firstErr;
+      if (e != null) {
+        throw AiException(_friendlyError(e.statusCode, _tryDecode(utf8.decode(e.bodyBytes))));
+      }
+      throw netErr ??
+          const AiException('Server Gemini belum merespons. Silakan coba lagi sebentar lagi.');
     }
 
-    final decoded = _tryDecode(utf8.decode(res.bodyBytes));
-
-    if (res.statusCode != 200) {
-      throw AiException(_friendlyError(res.statusCode, decoded));
-    }
+    final decoded = _tryDecode(utf8.decode(ok.bodyBytes));
 
     final block = decoded?['promptFeedback']?['blockReason'];
     if (block != null) {
       throw AiException('Permintaan ditolak oleh filter model ($block).');
     }
 
-    final partsOut = decoded?['candidates']?[0]?['content']?['parts'];
-    if (partsOut is! List) return '';
-    return partsOut
-        .whereType<Map>()
-        .where((p) => p['thought'] != true)
-        .map((p) => p['text']?.toString() ?? '')
-        .join()
-        .trim();
+    final candidates = decoded?['candidates'];
+    if (candidates is! List || candidates.isEmpty) {
+      throw const AiException('Model tidak memberikan jawaban. Silakan coba lagi.');
+    }
+    final first = candidates.first;
+    final cand = (first is Map) ? first : const <String, dynamic>{};
+    final finish = cand['finishReason']?.toString();
+    final content = cand['content'];
+    final partsOut = (content is Map) ? content['parts'] : null;
+    final text = (partsOut is List)
+        ? partsOut
+            .whereType<Map>()
+            .where((p) => p['thought'] != true)
+            .map((p) => p['text']?.toString() ?? '')
+            .join()
+            .trim()
+        : '';
+
+    switch (finish) {
+      case null:
+      case 'STOP':
+      case 'FINISH_REASON_UNSPECIFIED':
+        break;
+      case 'MAX_TOKENS':
+        // Teks biasa (OCR) yang kepotong masih berguna; JSON yang kepotong rusak.
+        if (json || text.isEmpty) {
+          throw const AiException(
+            'Jawaban AI terpotong karena terlalu panjang. Coba persingkat atau persempit permintaan.',
+          );
+        }
+      case 'SAFETY':
+        throw const AiException('Jawaban diblokir oleh filter keamanan model. Coba ubah kata-katanya.');
+      case 'RECITATION':
+        throw const AiException(
+          'Model berhenti karena jawabannya terdeteksi mengutip teks panjang. Silakan coba lagi.',
+        );
+      default:
+        if (text.isEmpty) {
+          throw AiException('Model berhenti tanpa jawaban ($finish). Silakan coba lagi.');
+        }
+    }
+    return text;
   }
 
   Map<String, dynamic>? _tryDecode(String s) {

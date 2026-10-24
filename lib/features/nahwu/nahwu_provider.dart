@@ -88,6 +88,8 @@ class NahwuProvider extends ChangeNotifier {
       if (a.isEmpty) {
         _error = 'Kalimat belum bisa dianalisis. '
             'Pastikan teksnya berbahasa Arab (lebih baik berharakat), lalu coba lagi.';
+      } else if (a.isBroken) {
+        _error = 'Jawaban AI terpotong atau tidak terbaca. Silakan coba lagi.';
       } else {
         _analysis = a;
         _runId++;

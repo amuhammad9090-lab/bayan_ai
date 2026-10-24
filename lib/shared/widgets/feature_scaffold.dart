@@ -150,10 +150,13 @@ class _FeatureHeaderDelegate extends SliverPersistentHeaderDelegate {
       old.top != top;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      // Lebar header sebenarnya (di layar lebar konten dibatasi, bukan selebar layar).
+      LayoutBuilder(builder: (context, c) => _build(context, shrinkOffset, c.maxWidth));
+
+  Widget _build(BuildContext context, double shrinkOffset, double width) {
     final range = maxExtent - minExtent;
     final t = (shrinkOffset / range).clamp(0.0, 1.0);
-    final width = MediaQuery.of(context).size.width;
     const artH = _expanded - 34.0;
 
     return Container(

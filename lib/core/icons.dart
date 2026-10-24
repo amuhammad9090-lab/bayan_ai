@@ -54,6 +54,7 @@ class AppIcons {
   static const user = LucideIcons.user;
   static const logIn = LucideIcons.logIn;
   static const logOut = LucideIcons.logOut;
+  static const userX = LucideIcons.userX;
   static const cloud = LucideIcons.cloud;
   static const pencil = LucideIcons.pencil;
   static const back = LucideIcons.chevronLeft;
