@@ -98,10 +98,16 @@ class QuranPage extends StatelessWidget {
                     return ActionChip(
                       label: Text(
                         s,
-                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: context.chipFg(c),
+                        ),
                       ),
-                      backgroundColor: c.withValues(alpha: context.isDark ? 0.2 : 0.12),
-                      side: BorderSide.none,
+                      backgroundColor: context.chipBg(c),
+                      side: context.isDark
+                          ? BorderSide(color: context.chipBorder(c))
+                          : BorderSide.none,
                       shape: const StadiumBorder(),
                       onPressed: () {
                         quran.setQuery(s);
@@ -330,9 +336,18 @@ class _TafsirChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cs.primary;
+    final dark = context.isDark;
     return Material(
-      color: selected ? c.withValues(alpha: context.isDark ? 0.28 : 0.14) : Colors.transparent,
-      shape: StadiumBorder(side: BorderSide(color: selected ? c : context.border)),
+      color: selected
+          ? c.withValues(alpha: dark ? 0.28 : 0.14)
+          : dark
+              ? context.chipBg(c).withValues(alpha: 0.10)
+              : Colors.transparent,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: selected ? c : (dark ? context.chipBorder(c) : context.border),
+        ),
+      ),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,

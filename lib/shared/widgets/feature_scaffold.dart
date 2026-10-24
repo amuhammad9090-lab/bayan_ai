@@ -37,7 +37,20 @@ class FeatureScroll extends StatelessWidget {
       color: shadow,
       child: Theme(
       data: Theme.of(context).withAccent(shadow),
-      child: CustomScrollView(
+      child: Stack(
+      fit: StackFit.expand,
+      children: [
+      // Gelap: satu cahaya lembut warna tab (lebih tipis dari Beranda).
+      if (context.isDark)
+        Positioned.fill(
+          child: AmbientGlow(
+            spots: [
+              (const Alignment(-1.1, -0.2), shadow, 0.10, 0.95),
+              (const Alignment(1.1, 1.0), shadow, 0.06, 0.85),
+            ],
+          ),
+        ),
+      CustomScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       slivers: [
         if (onRefresh != null) AppRefreshControl(onRefresh: onRefresh!),
@@ -61,7 +74,38 @@ class FeatureScroll extends StatelessWidget {
         ),
       ],
     ),
+      ],
     ),
+    ),
+    );
+  }
+}
+
+/// Cahaya lembut di latar (dark mode) supaya halaman nggak flat.
+/// Tiap titik: (posisi, warna, kekuatan alpha, radius).
+class AmbientGlow extends StatelessWidget {
+  final List<(Alignment, Color, double, double)> spots;
+  const AmbientGlow({super.key, required this.spots});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          for (final (at, c, a, r) in spots)
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: at,
+                    radius: r,
+                    colors: [c.withValues(alpha: a), c.withValues(alpha: 0)],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -14,12 +14,13 @@ class Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = context.tone(color);
+    final fg = context.chipFg(color);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: context.isDark ? 0.22 : 0.12),
+        color: context.chipBg(color),
         borderRadius: BorderRadius.circular(20),
+        border: context.isDark ? Border.all(color: context.chipBorder(color)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -184,12 +185,13 @@ class ActionChipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = danger ? context.tone(AppColors.danger) : context.cs.primary;
+    final base = danger ? AppColors.danger : context.cs.primary;
+    final c = context.chipFg(base);
     return Opacity(
       opacity: onTap == null ? 0.45 : 1,
       child: Material(
-        color: c.withValues(alpha: context.isDark ? 0.16 : 0.09),
-        borderRadius: BorderRadius.circular(20),
+        color: context.isDark ? context.chipBg(base) : base.withValues(alpha: 0.09),
+        shape: StadiumBorder(side: BorderSide(color: context.chipBorder(base))),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,

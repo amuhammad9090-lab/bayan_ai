@@ -216,8 +216,13 @@ class LogoutButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.tone(AppColors.danger);
     return Material(
-      color: AppColors.danger.withValues(alpha: context.isDark ? 0.16 : 0.09),
-      borderRadius: BorderRadius.circular(20),
+      color: context.isDark
+          ? context.chipBg(AppColors.danger)
+          : AppColors.danger.withValues(alpha: 0.09),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: context.chipBorder(AppColors.danger)),
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,

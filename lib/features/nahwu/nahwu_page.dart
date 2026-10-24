@@ -350,8 +350,8 @@ class _MiniIconButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: c.withValues(alpha: context.isDark ? 0.16 : 0.09),
-        shape: const CircleBorder(),
+        color: context.isDark ? context.chipBg(c) : c.withValues(alpha: 0.09),
+        shape: CircleBorder(side: BorderSide(color: context.chipBorder(c))),
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,

@@ -84,6 +84,16 @@ class _OcrPageState extends State<OcrPage> {
                   child: ocr.image == null
                       ? Material(
                           color: context.surface2,
+                          // Gelap: garis tipis warna tab biar area unggah nggak nyaru.
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                            side: context.isDark
+                                ? BorderSide(
+                                    color: context.chipBorder(context.accent).withValues(alpha: 0.35),
+                                    width: 1.4,
+                                  )
+                                : BorderSide.none,
+                          ),
                           child: InkWell(
                             onTap: () => _pick(),
                             child: Column(

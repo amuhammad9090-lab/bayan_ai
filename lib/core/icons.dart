@@ -22,13 +22,10 @@ class AppIcons {
   static const trash = LucideIcons.trash2;
   static const close = LucideIcons.x;
   static const check = LucideIcons.check;
-  static const send = LucideIcons.send;
   static const shuffle = LucideIcons.shuffle;
   static const paste = LucideIcons.clipboardPaste;
   static const history = LucideIcons.history;
-  static const arrowRight = LucideIcons.arrowRight;
   static const chevronRight = LucideIcons.chevronRight;
-  static const chevronDown = LucideIcons.chevronDown;
   static const replace = LucideIcons.refreshCw;
 
   // Status & info
@@ -36,7 +33,6 @@ class AppIcons {
   static const eye = LucideIcons.eye;
   static const eyeOff = LucideIcons.eyeOff;
   static const cpu = LucideIcons.cpu;
-  static const palette = LucideIcons.palette;
   static const moon = LucideIcons.moon;
   static const sun = LucideIcons.sun;
   static const info = LucideIcons.info;
@@ -51,8 +47,6 @@ class AppIcons {
   static const bookMarked = LucideIcons.bookMarked;
   static const monitor = LucideIcons.monitor;
   static const tune = LucideIcons.slidersHorizontal;
-  static const star = LucideIcons.star;
-  static const bell = LucideIcons.bell;
 
   // Akun
   static const mail = LucideIcons.mail;

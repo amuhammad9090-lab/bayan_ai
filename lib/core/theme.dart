@@ -20,7 +20,7 @@ class AppColors {
   static const cyan = Color(0xFF0891B2);
   static const indigo = Color(0xFF4F46E5);
 
-  // Aksen kartu & ikon (oranye, ungu, tosca, hijau, peach).
+  // Aksen kartu & ikon (oranye, ungu, tosca, peach).
   static const orange = Color(0xFFF5A623);
   // Aksen fitur Qur'an: tosca-aqua (agak ke cyan, beda tipis dari tosca Setelan).
   static const quran = Color(0xFF2FBFCF);
@@ -28,7 +28,6 @@ class AppColors {
   static const ocr = Color(0xFF5E82E8);
   static const purple = Color(0xFF7B7FC6);
   static const teal = Color(0xFF4FD3CC);
-  static const green = Color(0xFF3FAE5A);
   static const peach = Color(0xFFFFCBBD);
 
   // Light
@@ -364,6 +363,26 @@ extension ThemeX on BuildContext {
   }
   /// Di dark mode, warna aksen dicerahin dikit biar kebaca di background kalem.
   Color tone(Color c) => isDark ? Color.lerp(c, Colors.white, 0.4)! : c;
+
+  /// Versi warna yang tetap "berwarna" di dark mode (nggak pudar jadi abu).
+  static Color _mid(Color c) {
+    final h = HSLColor.fromColor(c);
+    return h
+        .withLightness(0.58)
+        .withSaturation(h.saturation < 0.55 ? 0.55 : h.saturation)
+        .toColor();
+  }
+
+  /// Latar pill/chip: rona warna yang jelas beda dari kartu & latar.
+  Color chipBg(Color c) =>
+      isDark ? _mid(c).withValues(alpha: 0.20) : c.withValues(alpha: 0.12);
+
+  /// Garis tepi pill/chip (dark saja; terang tanpa garis).
+  Color chipBorder(Color c) =>
+      isDark ? _mid(c).withValues(alpha: 0.45) : Colors.transparent;
+
+  /// Teks/ikon pill: di gelap dicerahkan tapi warnanya tetap kelihatan.
+  Color chipFg(Color c) => isDark ? accentInk(c, true) : c;
   Gradient dim(Gradient g) => g.forMode(isDark);
   Color get textColor => isDark ? AppColors.darkText : AppColors.lightText;
 }
@@ -421,7 +440,14 @@ extension AccentTheme on ThemeData {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: (outlinedButtonTheme.style ?? const ButtonStyle())
-            .copyWith(foregroundColor: WidgetStatePropertyAll(ink)),
+            .copyWith(
+              foregroundColor: WidgetStatePropertyAll(ink),
+              side: dark
+                  ? WidgetStatePropertyAll(
+                      BorderSide(color: ink.withValues(alpha: 0.4)),
+                    )
+                  : null,
+            ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: (textButtonTheme.style ?? const ButtonStyle())

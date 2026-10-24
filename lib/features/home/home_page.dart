@@ -325,39 +325,19 @@ class _HomePageState extends State<HomePage> {
     }
     // Gelap: cahaya lembut warna-warna fitur di latar supaya nggak flat.
     return Stack(
+      fit: StackFit.expand,
       children: [
-        const Positioned.fill(child: _AmbientGlow()),
-        scroll,
-      ],
-    );
-  }
-}
-
-class _AmbientGlow extends StatelessWidget {
-  const _AmbientGlow();
-
-  static Widget _glow(Alignment at, Color c, double a, double r) => Positioned.fill(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: at,
-              radius: r,
-              colors: [c.withValues(alpha: a), c.withValues(alpha: 0)],
-            ),
+        const Positioned.fill(
+          child: AmbientGlow(
+            spots: [
+              (Alignment(-1.1, -0.35), Color(0xFF3A8EE6), 0.16, 0.9),
+              (Alignment(1.2, 0.15), AppColors.featNahwu, 0.09, 0.8),
+              (Alignment(-1.0, 1.0), AppColors.featOcr, 0.11, 0.9),
+            ],
           ),
         ),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          _glow(const Alignment(-1.1, -0.35), const Color(0xFF3A8EE6), 0.16, 0.9),
-          _glow(const Alignment(1.2, 0.15), AppColors.featNahwu, 0.09, 0.8),
-          _glow(const Alignment(-1.0, 1.0), AppColors.featOcr, 0.11, 0.9),
-        ],
-      ),
+        scroll,
+      ],
     );
   }
 }

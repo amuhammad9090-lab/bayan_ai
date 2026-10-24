@@ -92,7 +92,7 @@ class _TopicPill extends StatelessWidget {
     final bg = filled
         ? color
         : dark
-            ? Color.alphaBlend(color.withValues(alpha: 0.13), surface)
+            ? Color.alphaBlend(context.chipBg(color), surface)
             : surface;
     final fg = filled ? Colors.white : context.textColor;
 
@@ -109,7 +109,7 @@ class _TopicPill extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
             border: (!filled && dark)
-                ? Border.all(color: Color.alphaBlend(color.withValues(alpha: 0.32), surface))
+                ? Border.all(color: context.chipBorder(color))
                 : null,
             boxShadow: (!filled && !dark)
                 ? [

@@ -62,10 +62,9 @@ class RichResult extends StatelessWidget {
 // Semua tab (OCR, Qur'an, Nahwu, Setelan) dibangun dari potongan yang sama:
 // banner -> kartu kerja (input + aksi utama) -> hasil -> catatan kecil.
 
-/// Padding & jarak standar halaman tab.
+/// Jarak standar antarbagian halaman tab.
 class PageGap {
   PageGap._();
-  static const padding = EdgeInsets.fromLTRB(16, 14, 16, 28);
   static const section = SizedBox(height: 20);
   static const inner = SizedBox(height: 12);
 }
@@ -194,8 +193,15 @@ class TonalButton extends StatelessWidget {
       child: Material(
         color: filled
             ? context.accent
-            : c.withValues(alpha: context.isDark ? 0.16 : 0.09),
-        borderRadius: BorderRadius.circular(16),
+            : context.isDark
+                ? context.chipBg(c)
+                : c.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: filled ? Colors.transparent : context.chipBorder(c),
+          ),
+        ),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,

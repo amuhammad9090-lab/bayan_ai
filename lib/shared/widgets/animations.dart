@@ -6,10 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/theme.dart';
 
-/// Potongan 0..1 dari timeline [t]: mulai di [start], panjang [length].
-double segment(double t, double start, double length) =>
-    ((t - start) / length).clamp(0.0, 1.0).toDouble();
-
 /// Ngulang animasi terus-menerus; builder dapat nilai t (0..1).
 class LoopBuilder extends StatefulWidget {
   final Duration duration;
